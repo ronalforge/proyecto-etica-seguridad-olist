@@ -11,7 +11,7 @@
   <a class="skip-link" href="#contenido">Ir al contenido</a>
   <header class="site-header">
     <div class="header-inner">
-      <a class="identity" href="{{ url_for('dashboard') }}"><span class="identity-mark" aria-hidden="true">◉</span><span>Olist <span class="identity-muted">Lab</span></span></a>
+      <a class="identity" href="{{ url_for('dashboard') }}">{% include '_brand_icon.html' %}<span>Olist <span class="identity-muted">Lab</span></span></a>
       <nav class="header-actions" aria-label="Navegación"><a class="nav-link" href="{{ url_for('dashboard') }}">Volver al resumen</a></nav>
     </div>
   </header>
