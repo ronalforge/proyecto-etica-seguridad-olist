@@ -79,7 +79,7 @@ Este proyecto construye un prototipo académico para analizar las entregas tard�
 
 La importación seleccionó 96\,470 pedidos entregados con fechas y estado del cliente disponibles, de 99\,441 pedidos del archivo original. De ellos, 6\,534 llegaron después de la fecha estimada: \textbf{6.8\,\%}. Entre las entregas tardías, el retraso medio fue de \textbf{10.6 días}. La calificación promedio con reseña disponible fue de \textbf{4.29/5} para las puntuales y \textbf{2.27/5} para las tardías. Estas diferencias son asociaciones descriptivas; no demuestran causalidad.
 
-El prototipo tiene una base SQLite, un backend Flask y un panel React con componentes shadcn/ui. Implementa autenticación, roles, consulta de agregados, registro de auditoría, una modalidad HTTPS local con certificado autofirmado y respaldo cifrado y autenticado con AES-256-GCM. Se distingue lo construido de las medidas futuras: \textbf{la base SQLite operativa permanece sin cifrado} y el modo HTTP local, disponible para demostración, \textbf{no protege el tráfico}. Se propone un procedimiento de uso seguro, un plan básico ante incidentes y una hoja de ruta de mejora.
+El prototipo tiene una base SQLite cifrada con SQLCipher, un backend Flask y un panel React con componentes shadcn/ui. Implementa autenticación, roles, consulta de agregados, registro de auditoría, una modalidad HTTPS local con certificado autofirmado y respaldo cifrado y autenticado con AES-256-GCM. La clave de la base se guarda en un archivo local separado, pero en el mismo equipo; el ZIP original sigue sin cifrar y el modo HTTP local, disponible para demostración, \textbf{no protege el tráfico}. Se propone un procedimiento de uso seguro, un plan básico ante incidentes y una hoja de ruta de mejora.
 
 \section{Introducción y caso de negocio}
 \subsection{Problema y oportunidad}
@@ -178,13 +178,13 @@ F5 & Consultar registros individuales o análisis por vendedor según rol. & Pro
 \end{table}
 
 \subsection{Arquitectura y flujo}
-El importador Python lee el ZIP Olist y el CSV de feriados, selecciona las columnas necesarias y carga \texttt{deliveries} y \texttt{holidays} en SQLite. Flask consulta agregados mediante SQL y expone \texttt{/api/dashboard}. React consume esa respuesta y dibuja tarjetas, barras, una tabla mensual y un filtro. Flask conserva las páginas de ingreso y auditoría. La tabla \texttt{users} guarda credenciales con hash y rol; \texttt{audit\_log} registra eventos. El script \texttt{backup.py} crea una instantánea consistente y la cifra.
+El importador Python lee el ZIP Olist y el CSV de feriados, selecciona las columnas necesarias y carga \texttt{deliveries} y \texttt{holidays} en SQLite cifrada mediante SQLCipher. Flask consulta agregados mediante SQL y expone \texttt{/api/dashboard}. React consume esa respuesta y dibuja tarjetas, barras, una tabla mensual y un filtro. Flask conserva las páginas de ingreso y auditoría. La tabla \texttt{users} guarda credenciales con hash y rol; \texttt{audit\_log} registra eventos. El script \texttt{backup.py} crea una instantánea cifrada y la protege nuevamente con AES-256-GCM.
 
 \begin{center}
 \fbox{\begin{minipage}{.91\textwidth}\centering
-ZIP Olist + CSV feriados $\longrightarrow$ importador Python $\longrightarrow$ SQLite\\[5pt]
-Navegador (React) $\longleftrightarrow$ Flask/API $\longleftrightarrow$ SQLite\\[5pt]
-SQLite $\longrightarrow$ instantánea $\longrightarrow$ respaldo AES-256-GCM
+ZIP Olist + CSV feriados $\longrightarrow$ importador Python $\longrightarrow$ SQLCipher\\[5pt]
+Navegador (React) $\longleftrightarrow$ Flask/API $\longleftrightarrow$ SQLCipher\\[5pt]
+SQLCipher $\longrightarrow$ instantánea cifrada $\longrightarrow$ respaldo AES-256-GCM
 \end{minipage}}
 \end{center}
 
@@ -203,7 +203,7 @@ Los activos principales son la base operativa, los archivos de origen, los respa
 \toprule
 Riesgo & Medida actual & Riesgo residual / medida futura\\
 \midrule
-Lectura indebida de la base o del ZIP & Minimización al importar; rutas locales fuera de Git & SQLite y ZIP sin cifrado operativo; aplicar cifrado de disco, permisos y retención\\
+Lectura indebida de la base o del ZIP & SQLCipher y minimización al importar; rutas fuera de Git & Clave local junto a la base y ZIP sin cifrar; separar claves, restringir permisos y aplicar retención\\
 Robo de credenciales o sesión & Hash de contraseñas, cookie HttpOnly y SameSite, CSRF, límite por usuario & Incorporar MFA y límite por IP; gestionar rotación y caducidad\\
 Intercepción del tráfico & Modo HTTPS local autofirmado & Certificado confiable y servidor de producción; HTTP local no protege transporte\\
 Alteración o pérdida del respaldo & Copia SQLite consistente y AES-256-GCM; prueba de restauración & Separar clave y copia, respaldar fuera del equipo y probar recuperación periódica\\
@@ -216,7 +216,7 @@ Acceso a auditoría o difusión de filas & Control de rol en backend y resultado
 \subsection{Protección en reposo y en tránsito}
 Las contraseñas se procesan con las funciones de hash de Werkzeug y no se guardan en texto claro. La creación de cuentas exige un mínimo de 12 caracteres. Flask usa cookies de sesión \texttt{HttpOnly} y \texttt{SameSite=Lax}; \texttt{Secure} está activo en el modo HTTPS y se desactiva solo en el modo HTTP de demostración. Los formularios de ingreso y salida comprueban un token CSRF. Se envían cabeceras \texttt{no-store}, \texttt{nosniff}, \texttt{DENY} para marcos, política de referente y una Content Security Policy restringida al mismo origen.
 
-El respaldo se cifra con AES-256-GCM usando una clave de 256 bits, un \emph{nonce} aleatorio de 12 bytes y autenticación del formato. Se obtiene mediante la API de respaldo de SQLite, se guarda como archivo cifrado y se verifica con \texttt{PRAGMA integrity\_check} al restaurar. \textbf{Limitación importante:} la base operativa no está cifrada; además, la clave de respaldo y el archivo de base permanecen en el mismo directorio local \path{instance/}. Si se compromete todo el equipo, estas medidas no garantizan la confidencialidad de los datos. Para un entorno real se requeriría separar la custodia de claves y respaldos, aplicar permisos y cifrado de volumen o base, y documentar la rotación de claves.
+La base operativa usa SQLCipher 4, con una clave aleatoria de 256 bits aplicada a cada conexión; una cabecera SQLite legible indica que la migración no se ha realizado y bloquea la apertura normal. La clave \path{instance/db.key} no se versiona y es necesaria para abrir la base. El respaldo crea una instantánea cifrada y la protege adicionalmente con AES-256-GCM, \emph{nonce} aleatorio de 12 bytes y autenticación del formato. La restauración se comprueba con \texttt{PRAGMA integrity\_check}. \textbf{Limitación importante:} la clave de SQLCipher y la de respaldo siguen en el mismo equipo y el ZIP original no está cifrado. Cifrar el archivo de base protege ante una copia aislada de ese archivo, pero no ante el compromiso del equipo completo. Para un entorno real se requerirían custodia separada de claves, permisos de archivo, cifrado del ZIP y rotación documentada.
 
 El certificado autofirmado local demuestra el uso técnico de HTTPS, pero un navegador no puede validarlo como identidad de confianza sin instalar una CA propia. No se instruye a ignorar advertencias de seguridad como práctica normal. Para producción se necesitaría una CA confiable y un servidor apropiado. No se afirma cumplimiento de un estándar por el mero uso de estas funciones.
 
@@ -269,21 +269,7 @@ La copia cifrada se genera con \texttt{py backup.py backup} y se restaura a una 
 
 \section{Implementación y validación}
 \subsection{Componentes desarrollados}
-\begin{table}[H]
-\centering\small
-\begin{tabularx}{\textwidth}{P{3.5cm}Y}
-\toprule
-Archivo / componente & Función\\
-\midrule
-\path{import_data.py} & Importa columnas mínimas desde Olist y feriados hacia SQLite.\\
-\path{app.py} & Autenticación, agregados SQL, API, auditoría, controles de sesión y modo HTTPS/HTTP local.\\
-\path{frontend/src/App.tsx} & Panel React con componentes shadcn/ui y filtro de estado.\\
-\path{backup.py} & Instantánea, cifrado autenticado y restauración verificada.\\
-\path{holidays_2018.csv} & Nueve feriados nacionales de la fuente oficial.\\
-\bottomrule
-\end{tabularx}
-\caption{Mapa de artefactos del prototipo.}
-\end{table}
+El importador \path{import_data.py} integra Olist y los feriados; \path{db_crypto.py} aplica la clave SQLCipher a las conexiones. \path{app.py} ofrece autenticación, API y auditoría; \path{frontend/src/App.tsx} muestra el panel. \path{backup.py} genera y restaura respaldos cifrados.
 
 \subsection{Pruebas y evidencias técnicas}
 \begin{table}[H]
@@ -293,6 +279,7 @@ Archivo / componente & Función\\
 Comprobación & Resultado observado & Evidencia reproducible\\
 \midrule
 Importación & 96\,470 filas incluidas; 2\,971 excluidas. & Conteo SQLite e importador\\
+Cifrado en reposo & La base migrada no tiene cabecera SQLite legible; SQLCipher la abre con clave y conserva 96\,470 filas. & \path{migrate_db.py} y consulta cifrada\\
 Acceso & La ruta principal exige sesión; la auditoría devuelve 403 a un lector. & Rutas Flask / rol\\
 Validación de filtro & Estado válido actualiza cifras; formato inválido responde 400. & API y navegador\\
 Intentos fallidos & Tras cinco fallos recientes por usuario, se responde 429. & Lógica y prueba local\\
@@ -308,7 +295,7 @@ No se han realizado pruebas de carga, revisión externa de seguridad ni validaci
 
 \section{Recomendaciones de protección futura}
 \begin{enumerate}
-\item \textbf{Cifrar la base operativa y separar claves:} es la brecha principal en reposo; un respaldo cifrado no protege el archivo SQLite mientras la aplicación está funcionando.
+\item \textbf{Separar y proteger las claves:} SQLCipher cifra la base operativa, pero su clave se guarda localmente; usar un gestor de secretos o el almacén protegido del sistema y documentar rotación y recuperación.
 \item \textbf{Desplegar con TLS de CA confiable:} elimina la advertencia propia del certificado temporal y permite protección en tránsito verificable para usuarios remotos. No exponer el modo HTTP local.
 \item \textbf{Fortalecer identidad y sesiones:} añadir MFA, limitación por IP, recuperación de cuentas, expiración de sesión y rotación de credenciales para reducir abuso de cuentas.
 \item \textbf{Operar respaldos fuera del equipo:} programar copias, separar la clave, verificar restauración regularmente y definir RPO/RTO con el negocio para resistir fallos del dispositivo.
@@ -325,7 +312,7 @@ El proyecto es desarrollado por Ronal Jesus Condor Blas y Marco Soto Maceda. Est
 \section{Conclusiones}
 El prototipo responde al caso de negocio con métricas históricas verificables y una interfaz agregada. La línea de base de 6.8\,\% de entregas tardías y la diferencia de puntuaciones permiten priorizar preguntas para una investigación logística posterior, pero no establecen causas ni metas operativas actuales. La integración de feriados añade una segunda fuente y demuestra por qué los grupos pequeños y las comparaciones no controladas requieren cautela.
 
-En materia de seguridad, la solución implementa controles visibles de autenticación, roles, auditoría, HTTPS local y respaldo cifrado con restauración. La evaluación también identifica límites sustanciales: la base operativa y el ZIP original no están cifrados, la clave del respaldo está en el mismo entorno, el certificado es autofirmado y el modo HTTP local no ofrece confidencialidad de transporte. El informe distingue estas condiciones de la hoja de ruta futura. Por ello, el resultado es una \textbf{demostración académica funcional}, no un sistema listo para operar con datos personales reales en producción.
+En materia de seguridad, la solución implementa controles visibles de autenticación, roles, auditoría, base operativa cifrada con SQLCipher, HTTPS local y respaldo cifrado con restauración. La evaluación también identifica límites sustanciales: el ZIP original no está cifrado, las claves siguen en el mismo equipo, el certificado es autofirmado y el modo HTTP local no ofrece confidencialidad de transporte. El informe distingue estas condiciones de la hoja de ruta futura. Por ello, el resultado es una \textbf{demostración académica funcional}, no un sistema listo para operar con datos personales reales en producción.
 
 \begin{thebibliography}{9}
 \bibitem{esquema} Curso DS3031. \emph{Esquema Proyecto de Ética y Seguridad de Datos -- Tipo 1}. Material de clase proporcionado por el profesor.

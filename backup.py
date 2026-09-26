@@ -7,10 +7,10 @@ from contextlib import closing
 from pathlib import Path
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from db_crypto import DB, SQLITE_HEADER, connect
 
 ROOT = Path(__file__).resolve().parent
 INSTANCE = ROOT / "instance"
-DB = INSTANCE / "olist.db"
 KEY = INSTANCE / "backup.key"
 MAGIC = b"OLIST-BACKUP-v1\n"
 
@@ -32,7 +32,10 @@ def backup(destination):
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as temp:
         snapshot = Path(temp) / "snapshot.db"
-        with closing(sqlite3.connect(DB)) as source, closing(sqlite3.connect(snapshot)) as target:
+        with DB.open("rb") as stream:
+            legacy = stream.read(16) == SQLITE_HEADER
+        opener = sqlite3.connect if legacy else connect
+        with closing(opener(DB)) as source, closing(opener(snapshot)) as target:
             source.backup(target)
         nonce = os.urandom(12)
         ciphertext = AESGCM(get_key()).encrypt(nonce, snapshot.read_bytes(), MAGIC)
@@ -49,12 +52,16 @@ def restore(source, destination):
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_bytes(data)
-    with closing(sqlite3.connect(destination)) as db:
+    legacy = data.startswith(SQLITE_HEADER)
+    opener = sqlite3.connect if legacy else connect
+    with closing(opener(destination)) as db:
         result = db.execute("PRAGMA integrity_check").fetchone()[0]
     if result != "ok":
         destination.unlink(missing_ok=True)
         raise ValueError("La base restaurada no pasó integrity_check")
     print(f"Restauración comprobada: {destination}")
+    if legacy:
+        print("Respaldo anterior a SQLCipher: la base restaurada está en texto claro; migra antes de usarla.")
 
 
 if __name__ == "__main__":

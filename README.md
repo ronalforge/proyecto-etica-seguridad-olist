@@ -23,6 +23,8 @@ py app.py run
 
 El comando `create-user` pide una contraseña de al menos 12 caracteres sin mostrarla. Abrir `https://127.0.0.1:5000` y aceptar la advertencia del certificado de desarrollo autofirmado. No usar este servidor de desarrollo para publicar el sitio.
 
+La base operativa `instance/olist.db` se cifra con SQLCipher. La primera importación crea `instance/db.key`; guarda una copia de esa clave en un lugar protegido y separado de la base. Si ya existía una base SQLite sin cifrar, detén el servidor y ejecuta `py migrate_db.py` una sola vez. La migración crea primero un respaldo cifrado en `instance/pre-sqlcipher.enc` y conserva las cuentas y registros de auditoría. El archivo `db.key` no debe subirse a Git ni compartirse junto con la base. Esta demostración guarda la clave en el mismo equipo, por lo que no protege frente al robo de ambos archivos.
+
 Si un navegador bloquea el certificado autofirmado sin opción de continuar, ejecutar `py app.py run-local-http` y abrir `http://127.0.0.1:5001/login`. Este modo funciona **solo en la misma computadora** y permite mostrar el prototipo. Para demostrar protección en tránsito, usar el modo HTTPS o desplegar con un certificado válido.
 
 El panel principal usa React y componentes shadcn/ui. Flask sirve el frontend compilado desde `frontend/dist` y proporciona los indicadores en `/api/dashboard`. El inicio de sesión y la auditoría siguen siendo páginas Flask. Si se modifica `frontend/src`, repetir `npm run build` desde `frontend` y recargar el navegador. La versión anterior del panel está disponible en `/legacy`.
@@ -34,7 +36,7 @@ py backup.py backup instance\copia.enc
 py backup.py restore instance\copia.enc --destination instance\restaurada.db
 ```
 
-`data/` contiene el ZIP original; `instance/` contiene la base, claves y respaldos. Ambos están ignorados por Git. El informe de entrega está en [informe/Informe_Olist.pdf](informe/Informe_Olist.pdf) y su código editable en [informe/Informe_Olist.tex](informe/Informe_Olist.tex). Para recompilarlo, ejecuta `pdflatex Informe_Olist.tex` dos veces desde `informe/`. [INFORME.md](INFORME.md) conserva las notas iniciales.
+`data/` contiene el ZIP original sin cifrar; `instance/` contiene la base cifrada, claves y respaldos. Ambos están ignorados por Git. El informe de entrega está en [informe/Informe_Olist.pdf](informe/Informe_Olist.pdf) y su código editable en [informe/Informe_Olist.tex](informe/Informe_Olist.tex). Para recompilarlo, ejecuta `pdflatex Informe_Olist.tex` dos veces desde `informe/`. [INFORME.md](INFORME.md) conserva las notas iniciales.
 
 La copia del ZIP descargada para este prototipo tiene SHA-256 `967E41E04FC306FE604E2A693F488995A8B41E5047418F8A5C8E4ABD6DECA784`. Si Kaggle actualiza el archivo, el hash puede cambiar y conviene volver a validar las cifras.
 

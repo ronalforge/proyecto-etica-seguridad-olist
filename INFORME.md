@@ -52,7 +52,7 @@ Para la demostración en navegadores que no aceptan ese certificado, hay un modo
 | Pérdida o alteración de respaldo | Copia SQLite consistente, cifrada y autenticada con AES-256-GCM; restauración e `integrity_check` | Proteger y custodiar la clave separadamente del respaldo; programar copias y probar recuperación periódica |
 | Uso indebido o incidentes | Registro de accesos, entradas y salidas sin contraseñas; plan básico abajo | Definir responsables, plazos y canal formal de comunicación |
 
-**Protección en reposo:** el respaldo está cifrado; la base SQLite operativa todavía **no** está cifrada. Para un despliegue real haría falta cifrado de disco o una base de datos con cifrado en reposo, además de permisos de sistema y gestión de claves. Los roles `admin`, `analyst` y `reader` existen para cuentas. Los tres ven el panel agregado; solo `admin` puede abrir la vista de auditoría. Las funciones de análisis adicionales por rol quedan para una siguiente iteración.
+**Protección en reposo:** el respaldo y la base SQLite operativa están cifrados; esta última usa SQLCipher. La clave `instance/db.key` permanece en el mismo equipo, así que se requieren permisos de sistema y una gestión de claves separada para un despliegue real. El ZIP original sigue sin cifrar. Los roles `admin`, `analyst` y `reader` existen para cuentas. Los tres ven el panel agregado; solo `admin` puede abrir la vista de auditoría. Las funciones de análisis adicionales por rol quedan para una siguiente iteración.
 
 **Política de uso:** limitar el acceso al equipo del proyecto, usar los datos únicamente para el fin académico y evitar capturas con información individual. No convertir asociaciones estadísticas en afirmaciones causales. No subir el ZIP original, la base, las claves ni los respaldos al repositorio público. El equipo debe revisar los logs, renovar credenciales de prueba si se comparten y eliminar los datos locales al finalizar el curso según el plazo acordado con el profesor.
 
@@ -76,7 +76,7 @@ La aplicación corre localmente; el certificado temporal genera una advertencia 
 
 **Aprendido:** el dato público también puede contener identificadores y ubicación que no conviene republicar. Definir primero los KPIs permitió reducir las columnas importadas. La restauración probada da más evidencia que simplemente generar un archivo de respaldo.
 
-**Para la siguiente iteración:** documentar licencias y condiciones de redistribución; revisar calidad de las fechas y reseñas faltantes; configurar almacenamiento cifrado de la base operativa; definir responsabilidades del equipo y realizar una revisión cruzada de seguridad.
+**Para la siguiente iteración:** documentar licencias y condiciones de redistribución; revisar calidad de las fechas y reseñas faltantes; separar la custodia de claves y cifrar el ZIP original; definir responsabilidades del equipo y realizar una revisión cruzada de seguridad.
 
 ## 8. Pendientes antes de la entrega final
 

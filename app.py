@@ -1,18 +1,16 @@
 """Panel académico local; ejecutar con HTTPS de desarrollo."""
 import argparse
-import os
 import secrets
-import sqlite3
 from functools import wraps
 from pathlib import Path
 
 from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
+from db_crypto import DB, connect as encrypted_connect
 
 ROOT = Path(__file__).resolve().parent
 INSTANCE = ROOT / "instance"
 INSTANCE.mkdir(exist_ok=True)
-DB = INSTANCE / "olist.db"
 KEY_FILE = INSTANCE / "secret.key"
 if not KEY_FILE.exists():
     KEY_FILE.write_text(secrets.token_hex(32), encoding="ascii")
@@ -24,8 +22,7 @@ app.config.update(SESSION_COOKIE_SECURE=True, SESSION_COOKIE_HTTPONLY=True,
 
 
 def connect():
-    db = sqlite3.connect(DB)
-    db.row_factory = sqlite3.Row
+    db = encrypted_connect()
     db.execute("PRAGMA foreign_keys=ON")
     db.execute("""CREATE TABLE IF NOT EXISTS users (
         username TEXT PRIMARY KEY, password_hash TEXT NOT NULL, role TEXT NOT NULL

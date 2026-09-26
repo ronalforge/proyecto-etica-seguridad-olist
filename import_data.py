@@ -1,14 +1,12 @@
 """Importa únicamente columnas necesarias desde el ZIP original de Olist."""
 import csv
 import io
-import sqlite3
-import sys
 import zipfile
 from pathlib import Path
+from db_crypto import DB, connect
 
 ROOT = Path(__file__).resolve().parent
 ZIP = ROOT / "data" / "olist.zip"
-DB = ROOT / "instance" / "olist.db"
 
 
 def rows(archive, name):
@@ -32,7 +30,7 @@ def main():
         sellers = {}
         for r in rows(archive, "olist_order_items_dataset.csv"):
             sellers.setdefault(r["order_id"], r["seller_id"])
-        with sqlite3.connect(DB) as db:
+        with connect(create=True) as db:
             db.executescript("""
                 DROP TABLE IF EXISTS deliveries;
                 DROP TABLE IF EXISTS holidays;
