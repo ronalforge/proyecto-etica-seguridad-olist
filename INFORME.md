@@ -1,7 +1,9 @@
-# Informe inicial: panel seguro de entregas Olist
+# Notas iniciales: panel seguro de entregas Olist
+
+El informe de entrega para Ronal Jesus Condor Blas y Marco Soto Maceda está en [informe/Informe_Olist.pdf](informe/Informe_Olist.pdf), con su código en [informe/Informe_Olist.tex](informe/Informe_Olist.tex). Este archivo conserva notas de la primera versión.
 
 **Curso:** Ética y Seguridad de Datos (DS3031)  
-**Integrante:** Ronal Jesus Condor Blas  
+**Integrantes:** Ronal Jesus Condor Blas y Marco Soto Maceda
 **Estado:** prototipo local funcional; el estudiante confirmó que el profesor aprobó el dataset Olist.
 
 ## 1. Motivación y caso de negocio

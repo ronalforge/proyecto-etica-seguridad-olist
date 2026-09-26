@@ -1,0 +1,374 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{array,booktabs,longtable,tabularx}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{titlesec}
+\usepackage{tocloft}
+
+\geometry{margin=2.45cm}
+\setstretch{1.12}
+\emergencystretch=3em
+\definecolor{utecblue}{HTML}{173B69}
+\definecolor{softgray}{HTML}{F3F5F7}
+\definecolor{darkgray}{HTML}{333333}
+\hypersetup{colorlinks=true,linkcolor=utecblue,urlcolor=utecblue,citecolor=utecblue,pdftitle={Panel de entregas Olist: ética y seguridad de datos},pdfauthor={Ronal Jesus Condor Blas y Marco Soto Maceda}}
+\urlstyle{same}
+\captionsetup{font=small,labelfont=bf,skip=5pt}
+\setlist[itemize]{leftmargin=1.1cm,itemsep=2pt}
+\setlist[enumerate]{leftmargin=1.1cm,itemsep=2pt}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection.}{.5em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection.}{.5em}{}
+\setlength{\cftsecnumwidth}{2.3em}
+\setlength{\cftsubsecindent}{2.3em}
+\newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\newcommand{\fuente}[1]{\par\vspace{2pt}{\footnotesize\textit{Fuente: #1}\par}}
+\newcommand{\estado}[1]{\textbf{#1}}
+
+\begin{document}
+\hypersetup{pageanchor=false}
+
+\begin{titlepage}
+\centering
+{\Large\bfseries UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA\par}
+\vspace{1.0cm}
+\includegraphics[width=.36\textwidth]{utec-logo.png}\par
+\vspace{1.0cm}
+{\LARGE\bfseries ÉTICA Y SEGURIDAD DE DATOS\par}
+\vspace{.25cm}
+{\Large\bfseries PROYECTO PARCIAL -- DS3031\par}
+\vspace{1.0cm}
+{\Large\bfseries Panel seguro para el análisis de entregas de Olist\par}
+\vspace{.25cm}
+{\large Caso de negocio: retrasos logísticos y satisfacción del cliente\par}
+\vspace{1.1cm}
+{\large\bfseries Integrantes\par}
+\vspace{.3cm}
+\begin{tabular}{P{9cm}}
+\toprule
+Condor Blas, Ronal Jesus\\
+Soto Maceda, Marco\\
+\bottomrule
+\end{tabular}
+\vfill
+{\large Lima, Perú\par}
+{\large Septiembre de 2026\par}
+\end{titlepage}
+
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\section{Resumen ejecutivo}
+Este proyecto construye un prototipo académico para analizar las entregas tardías de un conjunto histórico de comercio electrónico de Olist. La necesidad de negocio es identificar segmentos que ameriten una investigación logística y mostrar la relación descriptiva entre el cumplimiento de la fecha estimada y la calificación de la compra. El profesor autorizó el dataset base, según la confirmación del equipo. Se incorpora un segundo conjunto de datos, el calendario oficial de feriados nacionales de Brasil para 2018.
+
+La importación seleccionó 96\,470 pedidos entregados con fechas y estado del cliente disponibles, de 99\,441 pedidos del archivo original. De ellos, 6\,534 llegaron después de la fecha estimada: \textbf{6.8\,\%}. Entre las entregas tardías, el retraso medio fue de \textbf{10.6 días}. La calificación promedio con reseña disponible fue de \textbf{4.29/5} para las puntuales y \textbf{2.27/5} para las tardías. Estas diferencias son asociaciones descriptivas; no demuestran causalidad.
+
+El prototipo tiene una base SQLite, un backend Flask y un panel React con componentes shadcn/ui. Implementa autenticación, roles, consulta de agregados, registro de auditoría, una modalidad HTTPS local con certificado autofirmado y respaldo cifrado y autenticado con AES-256-GCM. Se distingue lo construido de las medidas futuras: \textbf{la base SQLite operativa permanece sin cifrado} y el modo HTTP local, disponible para demostración, \textbf{no protege el tráfico}. Se propone un procedimiento de uso seguro, un plan básico ante incidentes y una hoja de ruta de mejora.
+
+\section{Introducción y caso de negocio}
+\subsection{Problema y oportunidad}
+En una operación de comercio electrónico, conocer solo el número total de pedidos no permite priorizar la revisión de demoras. Un indicador global puede ocultar diferencias entre estados o meses, mientras que una lista de pedidos individuales expondría datos que el analista no necesita. Se plantea una vista agregada que permita responder: ¿cuál fue la tasa de tardanza?, ¿en qué grupos históricos fue mayor?, y ¿cómo varió la calificación observada entre pedidos puntuales y tardíos?
+
+El usuario previsto es un analista u operador que necesita orientar una investigación posterior. La aplicación no determina responsabilidades de vendedores, no predice plazos de entrega y no toma decisiones individuales sobre clientes. El dataset es histórico (compras de 2016 a 2018); no representa por sí solo el desempeño actual de Olist ni de otra tienda.
+
+\subsection{Objetivos}
+\textbf{Objetivo general:} diseñar y demostrar un sistema de análisis agregado de entregas tardías que aporte métricas reproducibles y aplique controles de seguridad proporcionales al caso académico.
+
+\textbf{Objetivos específicos:}
+\begin{enumerate}
+\item Integrar el dataset Olist con una fuente complementaria verificable de feriados.
+\item Definir KPIs con denominadores explícitos y explorar variaciones por estado y mes.
+\item Implementar una base de datos, un backend y una interfaz de consulta con acceso restringido.
+\item Demostrar controles de autenticación, auditoría, transporte HTTPS local y recuperación mediante respaldo cifrado.
+\item Documentar riesgos, límites éticos, respuesta a incidentes y mejoras futuras sin atribuir al prototipo garantías que no ofrece.
+\end{enumerate}
+
+\subsection{Valor esperado y criterio de éxito}
+El valor del panel es reducir el tiempo para ubicar segmentos que conviene examinar y evitar compartir filas individuales en la exploración inicial. Se mide mediante la disponibilidad de indicadores con definición reproducible, el filtrado por estado y la capacidad de restaurar una copia íntegra. La línea de base de 6.8\,\% describe el dataset; \textbf{no se fija una meta ficticia de reducción} para datos históricos. Una meta operativa futura requeriría datos recientes, un período de comparación y acuerdo con el responsable del negocio.
+
+\section{Fuentes de datos, alcance y calidad}
+\subsection{Dataset principal y fuente complementaria}
+El \emph{Brazilian E-Commerce Public Dataset by Olist} reúne archivos CSV de pedidos, clientes, ítems y reseñas \cite{olist}. La copia ZIP utilizada en esta ejecución tiene SHA-256 \texttt{967E41E04FC306FE604E2A693F488995A8B41E5047418F8A5C8E4ABD6DECA784}. El archivo original se conserva localmente en \path{data/olist.zip}, fuera del repositorio Git. El origen es público, pero ello no elimina los riesgos de reidentificación o uso fuera de contexto.
+
+La segunda fuente es la Portaria brasileña n.\textsuperscript{o} 468/2017, que publica los feriados nacionales de 2018 \cite{feriados}. Se transcribieron nueve fechas nacionales a \path{holidays_2018.csv}; se excluyeron puntos facultativos y feriados estatales o municipales. La unión se hace por \emph{fecha de compra}, no por fecha de entrega. Esta decisión es una hipótesis exploratoria y no implica que el feriado causara un retraso.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{P{3.6cm}Y P{3.2cm}}
+\toprule
+Fuente & Uso en el proyecto & Campos relevantes\\
+\midrule
+Olist: pedidos & Selección de pedidos entregados y cálculo temporal & Estado y fechas de compra, estimada y real\\
+Olist: clientes & Agrupación geográfica amplia & Estado federado\\
+Olist: reseñas & Satisfacción observada & Puntuación 1--5\\
+Olist: ítems & Campo de vendedor para posible extensión; no se muestra & Identificador de vendedor\\
+Portaria 468/2017 & Etiquetar compras en feriado nacional de 2018 & Fecha y nombre del feriado\\
+\bottomrule
+\end{tabularx}
+\caption{Procedencia y uso de las fuentes.}
+\end{table}
+
+\subsection{Selección y limitaciones del dato}
+El importador conserva pedidos con estado \texttt{delivered}, fechas de compra, entrega estimada y entrega real, y estado del cliente disponibles. Del total de 99\,441 pedidos, 96\,478 constan como entregados; ocho de ellos no cumplen todos los campos necesarios. En consecuencia, se incluyen 96\,470 y se excluyen 2\,971 en total. El período de compra incluido va del 15 de septiembre de 2016 al 29 de agosto de 2018; los extremos de ambos años son parciales.
+
+En la tabla importada faltan 646 puntuaciones de reseña (0.67\,\% del total). La media de reseñas puntuales usa 89\,443 puntuaciones disponibles entre 89\,936 pedidos puntuales; la de tardías usa 6\,381 puntuaciones entre 6\,534 pedidos tardíos. Los pedidos sin reseña siguen en el denominador de la tasa de tardanza, pero no en el promedio de puntuación. El importador toma la primera reseña y el primer vendedor que encuentra por pedido; por ello, no se presenta una medida por vendedor ni se asume que exista una única reseña por pedido. En las 96\,470 filas importadas no se observaron fechas de entrega anteriores a la compra, puntuaciones fuera de 1--5 ni incoherencias entre el indicador de tardanza y la diferencia de fechas. Estos chequeos no sustituyen una auditoría completa del dataset.
+
+\subsection{Definición de indicadores}
+Se convierte cada marca temporal a fecha calendario. Para el pedido $i$, $d_i$ es la diferencia en días entre fecha real y estimada y $t_i=1$ si $d_i>0$; en otro caso $t_i=0$. Al truncar a fecha, una entrega posterior dentro del mismo día estimado se considera puntual. Esta es una convención del prototipo que debe explicitarse al interpretar los resultados.
+
+\begin{equation}
+\text{Tasa tardía}=\frac{\sum_i t_i}{N}\times100,\qquad
+\text{Retraso medio}=\frac{\sum_{i:t_i=1}d_i}{\sum_i t_i}.
+\end{equation}
+Las puntuaciones medias se calculan solo para los pedidos con \texttt{review\_score} presente dentro de cada grupo. Los porcentajes se redondean a una cifra decimal para la presentación; el cálculo usa todos los registros incluidos.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{Y P{3.2cm} P{3.1cm}}
+\toprule
+Indicador & Resultado & Base de cálculo\\
+\midrule
+Pedidos analizados & 96\,470 & Entregados y completos\\
+Entregas tardías & 6\,534; 6.8\,\% & 6\,534 / 96\,470\\
+Retraso medio entre tardías & 10.6 días & Solo 6\,534 tardías\\
+Calificación media puntual & 4.29 / 5 & 89\,443 reseñas\\
+Calificación media tardía & 2.27 / 5 & 6\,381 reseñas\\
+\bottomrule
+\end{tabularx}
+\caption{Línea de base calculada desde la base SQLite del prototipo.}
+\end{table}
+
+\section{Análisis descriptivo y utilidad}
+La tasa global sirve como referencia para leer las desagregaciones, no como una meta. Entre los estados con al menos 30 pedidos, las tasas más altas son AL (21.4\,\%; 397 pedidos), MA (17.4\,\%; 717) y SE (15.2\,\%; 335). Entre los meses de compra con al menos 30 pedidos, destacan marzo de 2018 (19.0\,\%; 7\,003 pedidos), febrero de 2018 (14.1\,\%; 6\,555) y noviembre de 2017 (12.4\,\%; 7\,288). Estos grupos son candidatos para investigación, no evidencia suficiente para atribuir la demora a una región, un vendedor o una fecha concreta.
+
+En 2018 hay 641 pedidos comprados en feriado nacional, de los cuales 37 fueron tardíos (5.8\,\%). En los demás días del mismo año hay 52\,136 pedidos y 4\,041 tardíos (7.8\,\%). La comparación es desigual en tamaño y no controla por estacionalidad, estado, tipo de producto ni operador logístico; \textbf{no se interpreta como efecto causal}. Cuando un grupo filtrado por estado contiene menos de 30 pedidos, el panel oculta su porcentaje de feriados y muestra el tamaño de la muestra.
+
+\section{Requerimientos y diseño de la solución}
+\subsection{Requerimientos funcionales}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{P{1.1cm}Y P{2.4cm}}
+\toprule
+ID & Requerimiento y criterio observable & Estado\\
+\midrule
+F1 & Importar las dos fuentes y consultar agregados desde SQLite. & Implementado\\
+F2 & Mostrar tasa tardía, retraso y reseñas; filtrar por estado y mostrar serie mensual. & Implementado\\
+F3 & Comparar compras en feriado y día común, mostrando tamaños de grupo. & Implementado\\
+F4 & Acceder con cuenta y restringir la auditoría al administrador. & Implementado\\
+F5 & Consultar registros individuales o análisis por vendedor según rol. & Propuesta futura\\
+\bottomrule
+\end{tabularx}
+\caption{Alcance funcional. ``Implementado'' se refiere al prototipo local.}
+\end{table}
+
+\subsection{Arquitectura y flujo}
+El importador Python lee el ZIP Olist y el CSV de feriados, selecciona las columnas necesarias y carga \texttt{deliveries} y \texttt{holidays} en SQLite. Flask consulta agregados mediante SQL y expone \texttt{/api/dashboard}. React consume esa respuesta y dibuja tarjetas, barras, una tabla mensual y un filtro. Flask conserva las páginas de ingreso y auditoría. La tabla \texttt{users} guarda credenciales con hash y rol; \texttt{audit\_log} registra eventos. El script \texttt{backup.py} crea una instantánea consistente y la cifra.
+
+\begin{center}
+\fbox{\begin{minipage}{.91\textwidth}\centering
+ZIP Olist + CSV feriados $\longrightarrow$ importador Python $\longrightarrow$ SQLite\\[5pt]
+Navegador (React) $\longleftrightarrow$ Flask/API $\longleftrightarrow$ SQLite\\[5pt]
+SQLite $\longrightarrow$ instantánea $\longrightarrow$ respaldo AES-256-GCM
+\end{minipage}}
+\end{center}
+
+El servidor de desarrollo se vincula únicamente a \texttt{127.0.0.1}. El modo principal usa HTTPS en el puerto 5000 con certificado autofirmado temporal generado por Flask. Existe un modo alternativo HTTP en el puerto 5001 para navegadores que bloquean el certificado; está limitado a la misma máquina y \textbf{no constituye protección en tránsito}. No se plantea publicar el servidor de desarrollo en Internet.
+
+\subsection{Minimización y ciclo de vida}
+Por cada entrega se almacenan fechas, estado del cliente, puntuación disponible, identificador de vendedor y variables derivadas. No se importan el identificador de cliente, nombre, dirección, código postal, ciudad ni coordenadas de los CSV originales. El identificador de vendedor se conserva para una extensión futura, pero no se expone en la interfaz actual. El ZIP original, la base, las claves y los respaldos están fuera del control de versiones por \texttt{.gitignore}; esto \textbf{no cifra ni protege por sí solo} los archivos locales. Antes de compartir el repositorio debe comprobarse su contenido y eliminar datos de prueba no necesarios.
+
+\section{Diseño de seguridad y ética}
+\subsection{Modelo de amenazas}
+Los activos principales son la base operativa, los archivos de origen, los respaldos, las claves, las credenciales y los registros de auditoría. Los adversarios plausibles en la demostración son un usuario no autorizado con acceso al equipo, un visitante de la aplicación local y un operador que comparte por error archivos o capturas. La evaluación de riesgos es cualitativa y se limita al prototipo; no afirma haber realizado una prueba de penetración.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\textwidth}{P{2.7cm}Y Y}
+\toprule
+Riesgo & Medida actual & Riesgo residual / medida futura\\
+\midrule
+Lectura indebida de la base o del ZIP & Minimización al importar; rutas locales fuera de Git & SQLite y ZIP sin cifrado operativo; aplicar cifrado de disco, permisos y retención\\
+Robo de credenciales o sesión & Hash de contraseñas, cookie HttpOnly y SameSite, CSRF, límite por usuario & Incorporar MFA y límite por IP; gestionar rotación y caducidad\\
+Intercepción del tráfico & Modo HTTPS local autofirmado & Certificado confiable y servidor de producción; HTTP local no protege transporte\\
+Alteración o pérdida del respaldo & Copia SQLite consistente y AES-256-GCM; prueba de restauración & Separar clave y copia, respaldar fuera del equipo y probar recuperación periódica\\
+Acceso a auditoría o difusión de filas & Control de rol en backend y resultados agregados & Revisar permisos, retención de logs y divulgación accidental de capturas\\
+\bottomrule
+\end{tabularx}
+\caption{Amenazas, controles y límites observables.}
+\end{table}
+
+\subsection{Protección en reposo y en tránsito}
+Las contraseñas se procesan con las funciones de hash de Werkzeug y no se guardan en texto claro. La creación de cuentas exige un mínimo de 12 caracteres. Flask usa cookies de sesión \texttt{HttpOnly} y \texttt{SameSite=Lax}; \texttt{Secure} está activo en el modo HTTPS y se desactiva solo en el modo HTTP de demostración. Los formularios de ingreso y salida comprueban un token CSRF. Se envían cabeceras \texttt{no-store}, \texttt{nosniff}, \texttt{DENY} para marcos, política de referente y una Content Security Policy restringida al mismo origen.
+
+El respaldo se cifra con AES-256-GCM usando una clave de 256 bits, un \emph{nonce} aleatorio de 12 bytes y autenticación del formato. Se obtiene mediante la API de respaldo de SQLite, se guarda como archivo cifrado y se verifica con \texttt{PRAGMA integrity\_check} al restaurar. \textbf{Limitación importante:} la base operativa no está cifrada; además, la clave de respaldo y el archivo de base permanecen en el mismo directorio local \path{instance/}. Si se compromete todo el equipo, estas medidas no garantizan la confidencialidad de los datos. Para un entorno real se requeriría separar la custodia de claves y respaldos, aplicar permisos y cifrado de volumen o base, y documentar la rotación de claves.
+
+El certificado autofirmado local demuestra el uso técnico de HTTPS, pero un navegador no puede validarlo como identidad de confianza sin instalar una CA propia. No se instruye a ignorar advertencias de seguridad como práctica normal. Para producción se necesitaría una CA confiable y un servidor apropiado. No se afirma cumplimiento de un estándar por el mero uso de estas funciones.
+
+\subsection{Accesos y registros de auditoría}
+El backend reconoce los roles \texttt{admin}, \texttt{analyst} y \texttt{reader}. Los tres pueden ver el panel agregado; solo \texttt{admin} puede consultar \texttt{/audit}. No existe una interfaz de administración de usuarios ni privilegios analíticos diferenciados para los otros dos roles. Se bloquea temporalmente el ingreso después de cinco intentos fallidos por usuario en 15 minutos; aún falta un límite complementario por origen y una política para evitar bloqueos deliberados de cuentas.
+
+El registro almacena fecha UTC, nombre de usuario y acción (ingreso, fallo, bloqueo, salida o consulta), sin registrar contraseñas. La página administrativa presenta los últimos 100 eventos; ello \textbf{no significa que la tabla conserve solo 100}. No se ha implementado retención ni borrado automático de logs. Una política de producción deberá fijar acceso, plazo de conservación, exportación y revisión periódica.
+
+\subsection{Protección de datos y marco de referencia}
+El hecho de que Olist publique los datos no autoriza cualquier uso posterior. Se adopta la minimización y se muestran resultados agregados para evitar republicar registros y ubicaciones exactas. Si el prototipo llegara a tratar datos personales reales en Perú, el responsable tendría que evaluar la Ley N.\textsuperscript{o} 29733 y su reglamento aprobado por D. S. N.\textsuperscript{o} 016-2024-JUS, entre otras obligaciones aplicables \cite{peru}. La mención de estas normas no equivale a una declaración de cumplimiento legal ni resuelve por sí sola la posible aplicación de normas brasileñas. Como referencia de gestión se utiliza el ciclo gobernar, identificar, proteger, detectar, responder y recuperar del NIST CSF 2.0 \cite{nistcsf}.
+
+\section{Estrategia de uso seguro, políticas y formación}
+\subsection{Política propuesta para el equipo}
+Esta política se formula para la demostración y deberá ser aceptada y aplicada por ambos integrantes antes de compartir el material. Su cumplimiento organizativo todavía no se ha auditado.
+\begin{enumerate}
+\item \textbf{Finalidad:} usar los datos solo para el proyecto académico y análisis agregado de entregas. Prohibir decisiones individuales sobre compradores o vendedores basadas en este panel.
+\item \textbf{Acceso:} crear una cuenta individual por integrante y otorgar el rol mínimo necesario. No compartir contraseñas ni sesiones; cerrar sesión al terminar la demostración.
+\item \textbf{Almacenamiento y publicación:} no subir ZIP, SQLite, claves, respaldos ni capturas con filas individuales a GitHub, Notion o servicios públicos. Revisar \texttt{git status} y el contenido antes de publicar.
+\item \textbf{Transferencia:} compartir solo el PDF y el código necesario; para una demostración remota usar HTTPS con certificado confiable. El HTTP en \texttt{127.0.0.1} solo se permite en el mismo equipo.
+\item \textbf{Retención:} conservar los archivos locales únicamente durante el curso o el plazo acordado con el profesor; al cierre, eliminar copias y verificar que el repositorio no contenga secretos.
+\item \textbf{Uso analítico:} mostrar denominadores y advertir que correlación, feriados y diferencias geográficas no prueban causas.
+\end{enumerate}
+
+\subsection{Procedimiento y concientización}
+Antes de cada presentación, ambos integrantes deben revisar el modo de servidor, la cuenta utilizada, las rutas del repositorio y las capturas previstas. Si se descubre un secreto en un commit, debe dejar de distribuirse ese repositorio y rotarse el secreto; borrar solo el archivo actual no elimina su historial. Se propone una sesión breve de capacitación entre integrantes con cuatro ejercicios: reconocer un dato potencialmente identificable, distinguir HTTP local de HTTPS validado, restaurar un respaldo de prueba y ensayar cómo reportar una exposición accidental. La sesión y sus asistentes deben registrarse cuando efectivamente se realice; \textbf{no se presenta como una capacitación ya ejecutada}.
+
+\section{Respuesta ante incidentes y recuperación}
+\subsection{Plan básico}
+Se consideran incidentes la pérdida de la base, publicación accidental de ZIP o claves, acceso no autorizado y alteración de resultados. El plan siguiente es un procedimiento propuesto; no sustituye asesoría especializada ni fija plazos legales sin evaluar la jurisdicción aplicable. La secuencia está alineada de manera general con las recomendaciones de respuesta de NIST SP 800-61 Rev. 3 \cite{nistir}.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\textwidth}{P{2.5cm}Y P{4.4cm}}
+\toprule
+Fase & Acción del equipo & Evidencia / resultado esperado\\
+\midrule
+Detección & Quien observe el incidente avisa de inmediato al otro integrante; ambos registran hora UTC, sistema afectado y señal observada. & Ficha de incidente sin copiar secretos al informe.\\
+Contención & Detener el servicio si procede, aislar el equipo, retirar publicaciones accidentales y revocar credenciales comprometidas. & Registro de acciones y hora; preservar una copia para análisis.\\
+Análisis & Revisar logs, repositorio y alcance de archivos expuestos; distinguir pérdida, acceso y divulgación. & Alcance provisional e incertidumbres explícitas.\\
+Recuperación & Restaurar desde un respaldo cifrado conocido, verificar integridad y número de registros, renovar claves y validar el panel. & \texttt{integrity\_check = ok} y consulta de control.\\
+Comunicación & Informar al profesor y a los responsables definidos por el equipo; evaluar con asesoría las obligaciones legales si hubiera datos personales. & Comunicación precisa, sin afirmar ausencia de daño antes de investigar.\\
+Mejora & Documentar causa, correcciones y nueva prueba; actualizar el procedimiento. & Lecciones aprendidas y responsable de seguimiento.\\
+\bottomrule
+\end{tabularx}
+\caption{Procedimiento propuesto para incidentes del prototipo.}
+\end{table}
+
+\subsection{Contingencia y respaldo}
+La copia cifrada se genera con \texttt{py backup.py backup} y se restaura a una ruta distinta con \texttt{py backup.py restore}. La restauración de prueba produjo \texttt{integrity\_check = ok} y una base con 96\,470 entregas. Esto verifica que \emph{esa copia de prueba} era recuperable; no prueba resistencia a una pérdida simultánea del equipo y de la clave. En una operación real se programarían copias periódicas, almacenamiento separado, inventario de claves, pruebas regulares y objetivos RPO/RTO definidos con el negocio.
+
+\section{Implementación y validación}
+\subsection{Componentes desarrollados}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{P{3.5cm}Y}
+\toprule
+Archivo / componente & Función\\
+\midrule
+\path{import_data.py} & Importa columnas mínimas desde Olist y feriados hacia SQLite.\\
+\path{app.py} & Autenticación, agregados SQL, API, auditoría, controles de sesión y modo HTTPS/HTTP local.\\
+\path{frontend/src/App.tsx} & Panel React con componentes shadcn/ui y filtro de estado.\\
+\path{backup.py} & Instantánea, cifrado autenticado y restauración verificada.\\
+\path{holidays_2018.csv} & Nueve feriados nacionales de la fuente oficial.\\
+\bottomrule
+\end{tabularx}
+\caption{Mapa de artefactos del prototipo.}
+\end{table}
+
+\subsection{Pruebas y evidencias técnicas}
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\textwidth}{P{3.7cm}Y P{2.7cm}}
+\toprule
+Comprobación & Resultado observado & Evidencia reproducible\\
+\midrule
+Importación & 96\,470 filas incluidas; 2\,971 excluidas. & Conteo SQLite e importador\\
+Acceso & La ruta principal exige sesión; la auditoría devuelve 403 a un lector. & Rutas Flask / rol\\
+Validación de filtro & Estado válido actualiza cifras; formato inválido responde 400. & API y navegador\\
+Intentos fallidos & Tras cinco fallos recientes por usuario, se responde 429. & Lógica y prueba local\\
+Recuperación & Copia cifrada restaurada; integridad \texttt{ok}, 96\,470 filas. & \path{backup.py} y SQLite\\
+Frontend & Compilación TypeScript/Vite completada y filtro observado en navegador. & \texttt{npm run build}\\
+Auditoría & Solo el administrador ve fecha UTC, usuario y acción. & Ruta \texttt{/audit}\\
+\bottomrule
+\end{tabularx}
+\caption{Pruebas del prototipo local. No equivalen a una auditoría externa.}
+\end{table}
+
+No se han realizado pruebas de carga, revisión externa de seguridad ni validación de un despliegue de producción. La existencia del modo HTTPS se verifica por la configuración del servidor; una evidencia de transporte confiable requeriría un certificado validado por una CA y un entorno de despliegue distinto. Las capturas de pantalla pueden anexarse en la presentación final después de revisar que no muestren credenciales ni datos individuales.
+
+\section{Recomendaciones de protección futura}
+\begin{enumerate}
+\item \textbf{Cifrar la base operativa y separar claves:} es la brecha principal en reposo; un respaldo cifrado no protege el archivo SQLite mientras la aplicación está funcionando.
+\item \textbf{Desplegar con TLS de CA confiable:} elimina la advertencia propia del certificado temporal y permite protección en tránsito verificable para usuarios remotos. No exponer el modo HTTP local.
+\item \textbf{Fortalecer identidad y sesiones:} añadir MFA, limitación por IP, recuperación de cuentas, expiración de sesión y rotación de credenciales para reducir abuso de cuentas.
+\item \textbf{Operar respaldos fuera del equipo:} programar copias, separar la clave, verificar restauración regularmente y definir RPO/RTO con el negocio para resistir fallos del dispositivo.
+\item \textbf{Gestionar logs y retención:} limitar acceso administrativo, conservar solo el plazo necesario, revisar eventos y eliminar registros vencidos; hoy la tabla crece sin limpieza automática.
+\item \textbf{Revisar privacidad y calidad:} comprobar condiciones de uso del dataset, duplicados de reseñas, valores faltantes y sesgos antes de ampliar el panel o usar datos reales.
+\end{enumerate}
+Estas medidas se recomiendan porque reducen riesgos concretos identificados; no se declaran implementadas.
+
+\section{Lecciones aprendidas y retrospectiva del equipo}
+La principal lección técnica es que un dataset público puede contener columnas que no se necesitan para responder la pregunta de negocio. Definir primero el denominador del KPI permitió importar menos campos y detectar los 646 pedidos sin reseña. La comparación con feriados mostró que una cifra atractiva puede ser engañosa cuando los tamaños de grupo son muy distintos. En seguridad, restaurar una copia aportó evidencia más fuerte que limitarse a generar el archivo cifrado; al mismo tiempo, dejó visible la debilidad de guardar clave y base en el mismo equipo.
+
+El proyecto es desarrollado por Ronal Jesus Condor Blas y Marco Soto Maceda. Esta retrospectiva se formula sobre el trabajo documentado en el repositorio; no se asignan porcentajes de participación ni tareas individuales que no estén registrados. Como mejora de trabajo en equipo se propone llevar un registro de decisiones, revisar mutuamente el importador y los controles de acceso, ejecutar un ensayo de incidente con ambos integrantes y acordar una revisión final del informe antes de entregarlo. La ausencia de una revisión cruzada documentada es una limitación del proceso actual, no un hecho que se oculte.
+
+\section{Conclusiones}
+El prototipo responde al caso de negocio con métricas históricas verificables y una interfaz agregada. La línea de base de 6.8\,\% de entregas tardías y la diferencia de puntuaciones permiten priorizar preguntas para una investigación logística posterior, pero no establecen causas ni metas operativas actuales. La integración de feriados añade una segunda fuente y demuestra por qué los grupos pequeños y las comparaciones no controladas requieren cautela.
+
+En materia de seguridad, la solución implementa controles visibles de autenticación, roles, auditoría, HTTPS local y respaldo cifrado con restauración. La evaluación también identifica límites sustanciales: la base operativa y el ZIP original no están cifrados, la clave del respaldo está en el mismo entorno, el certificado es autofirmado y el modo HTTP local no ofrece confidencialidad de transporte. El informe distingue estas condiciones de la hoja de ruta futura. Por ello, el resultado es una \textbf{demostración académica funcional}, no un sistema listo para operar con datos personales reales en producción.
+
+\section{Correspondencia con el esquema y la rúbrica}
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\textwidth}{P{4.3cm}Y P{2.0cm}}
+\toprule
+Criterio del curso & Evidencia en este informe y prototipo & Sección\\
+\midrule
+Dataset aprobado, caso de negocio y fuente adicional & Olist, retrasos logísticos y Portaria 468/2017 & 2--4\\
+Valor medible / funcionalidad & KPI con denominadores, filtro, arquitectura y requerimientos & 3--5\\
+Protección en reposo y transporte; hash, accesos y logs & Controles implementados y brechas explícitas & 6\\
+Políticas, procedimientos y formación & Política de demostración y capacitación propuesta & 7\\
+Respuesta y contingencia & Fases, respaldo, restauración y límites & 8\\
+Recomendaciones futuras justificadas & Lista priorizada vinculada a riesgos & 10\\
+Diseño, implementación, pruebas y redacción & Arquitectura, componentes, resultados y validación & 5, 9\\
+Lecciones y retrospectiva del equipo & Aprendizajes y mejora del trabajo conjunto & 11\\
+\bottomrule
+\end{tabularx}
+\caption{Guía de revisión respecto del esquema del proyecto parcial DS3031.}
+\end{table}
+
+\begin{thebibliography}{9}
+\bibitem{esquema} Curso DS3031. \emph{Esquema Proyecto de Ética y Seguridad de Datos -- Tipo 1}. Material de clase proporcionado por el profesor.
+\bibitem{olist} Olist. \emph{Brazilian E-Commerce Public Dataset by Olist}. Kaggle. \url{https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce}. Consulta: septiembre de 2026.
+\bibitem{feriados} Ministério do Planejamento, Desenvolvimento e Gestão de Brasil. \emph{Portaria n.\textsuperscript{o} 468, de 22 de dezembro de 2017}. \url{https://www.gov.br/agricultura/pt-br/mailing/documentos/portaria-mpog-feriados-2018.pdf}. Consulta: septiembre de 2026.
+\bibitem{peru} Autoridad Nacional de Protección de Datos Personales. \emph{Decreto Supremo N.\textsuperscript{o} 016-2024-JUS: Reglamento de la Ley N.\textsuperscript{o} 29733}. \url{https://www.gob.pe/institucion/anpd/normas-legales/6554453-n-016-2024-jus}. Consulta: septiembre de 2026.
+\bibitem{nistcsf} National Institute of Standards and Technology. \emph{The NIST Cybersecurity Framework (CSF) 2.0}, 2024. \url{https://www.nist.gov/cyberframework}. Consulta: septiembre de 2026.
+\bibitem{nistir} National Institute of Standards and Technology. \emph{SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management}, 2025. \url{https://csrc.nist.gov/pubs/sp/800/61/r3/final}. Consulta: septiembre de 2026.
+\end{thebibliography}
+
+\appendix
+\section{Reproducción local y verificaciones}
+Desde la carpeta del proyecto se instalan las dependencias Python y JavaScript, se coloca el ZIP Olist en \path{data/olist.zip}, se ejecuta el importador y se crea una cuenta con una contraseña ingresada de forma interactiva. Los comandos esenciales son:
+\begin{quote}\small\ttfamily
+py -m pip install -r requirements.txt\\
+py import\_data.py\\
+cd frontend ; npm install ; npm run build ; cd ..\\
+py app.py create-user --username usuario --role admin\\
+py app.py run
+\end{quote}
+La URL HTTPS local es \url{https://127.0.0.1:5000}. Para la demostración exclusivamente en la misma máquina, \texttt{py app.py run-local-http} habilita \url{http://127.0.0.1:5001}. La restauración se comprueba con \texttt{py backup.py backup} y \texttt{py backup.py restore} usando un archivo \texttt{.enc} y una ruta de destino distinta. Nunca se debe incluir la contraseña o las claves en el informe o en capturas.
+
+\section{Estado de la entrega}
+Este PDF y su código LaTeX documentan el proyecto local. La publicación externa aún no se ha realizado. Ambos integrantes deben revisar nombres, fuentes y contenido antes de presentarlo.
+
+\end{document}

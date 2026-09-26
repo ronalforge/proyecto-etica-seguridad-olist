@@ -34,7 +34,7 @@ py backup.py backup instance\copia.enc
 py backup.py restore instance\copia.enc --destination instance\restaurada.db
 ```
 
-`data/` contiene el ZIP original; `instance/` contiene la base, claves y respaldos. Ambos están ignorados por Git. El informe está en [INFORME.md](INFORME.md).
+`data/` contiene el ZIP original; `instance/` contiene la base, claves y respaldos. Ambos están ignorados por Git. El informe de entrega está en [informe/Informe_Olist.pdf](informe/Informe_Olist.pdf) y su código editable en [informe/Informe_Olist.tex](informe/Informe_Olist.tex). Para recompilarlo, ejecuta `pdflatex Informe_Olist.tex` dos veces desde `informe/`. [INFORME.md](INFORME.md) conserva las notas iniciales.
 
 La copia del ZIP descargada para este prototipo tiene SHA-256 `967E41E04FC306FE604E2A693F488995A8B41E5047418F8A5C8E4ABD6DECA784`. Si Kaggle actualiza el archivo, el hash puede cambiar y conviene volver a validar las cifras.
 
