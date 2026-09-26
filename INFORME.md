@@ -1,7 +1,7 @@
 # Informe inicial: panel seguro de entregas Olist
 
 **Curso:** Ética y Seguridad de Datos (DS3031)  
-**Integrante:** Ronal Jesus Condro Blas  
+**Integrante:** Ronal Jesus Condor Blas  
 **Estado:** prototipo local funcional; el estudiante confirmó que el profesor aprobó el dataset Olist.
 
 ## 1. Motivación y caso de negocio
