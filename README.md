@@ -1,91 +1,72 @@
-# Proyecto de Ética y Seguridad de Datos: entregas de comercio electrónico
+# Olist Lab — Ética y Seguridad de Datos (DS3031)
 
-## Estado
+Proyecto de **Ronal Jesus Condor Blas y Marco Soto Maceda**. Es una demostración local para analizar entregas tardías del conjunto histórico de Olist (2016–2018), comparar la satisfacción de pedidos puntuales y tardíos y explorar diferencias por estado, mes y feriados nacionales de Brasil. Las comparaciones son descriptivas: no prueban causalidad ni representan el desempeño actual de una empresa.
 
-Prototipo local funcional con informe inicial. El profesor aprobó el uso del dataset base Olist, según confirmó el estudiante.
+## Qué hace la aplicación
 
-## Ejecutar en Windows
+- Importa pedidos, clientes, ítems y reseñas de Olist junto con nueve feriados nacionales de Brasil de 2018. Conserva solo las columnas necesarias; no importa nombres, direcciones ni identificadores de clientes.
+- Muestra indicadores agregados: 96 470 pedidos analizados, 6 534 tardíos (6,8 %), retraso medio de 10,6 días entre tardíos y calificaciones medias de 4,29/5 (puntuales) y 2,27/5 (tardíos) en la copia de datos utilizada.
+- Permite filtrar por estado del cliente. El panel React usa componentes shadcn/ui; Flask ofrece la API, el inicio de sesión y la página de auditoría.
+- Guarda la base operativa cifrada con SQLCipher. Las contraseñas se almacenan como hash. Hay roles `admin`, `analyst` y `reader`; solo `admin` ve `/audit`.
+- Genera y restaura respaldos cifrados y autenticados con AES-256-GCM.
 
-Desde esta carpeta:
+## Cómo probarlo en Windows (Marco)
+
+Necesitas **Python 3.11**, **Node.js 22** y Git. Abre PowerShell en una carpeta de trabajo y clona el repositorio privado una vez que aceptes la invitación:
 
 ```powershell
+git clone https://github.com/ronalforge/proyecto-etica-seguridad-olist.git
+cd proyecto-etica-seguridad-olist
 py -m pip install -r requirements.txt
 New-Item -ItemType Directory -Force data | Out-Null
 Invoke-WebRequest 'https://www.kaggle.com/api/v1/datasets/download/olistbr/brazilian-ecommerce' -OutFile 'data\olist.zip'
 py import_data.py
-py app.py create-user --username ronal --role admin
+py app.py create-user --username marco --role admin
 cd frontend
-npm install
+npm ci
 npm run build
 cd ..
 py app.py run
 ```
 
-El comando `create-user` pide una contraseña de al menos 12 caracteres sin mostrarla. Abrir `https://127.0.0.1:5000` y aceptar la advertencia del certificado de desarrollo autofirmado. No usar este servidor de desarrollo para publicar el sitio.
+El comando `create-user` solicita una contraseña de al menos 12 caracteres sin mostrarla. Abre **https://127.0.0.1:5000/login** e ingresa con el usuario que creaste. El certificado es autofirmado para esta demostración local, por lo que el navegador advertirá que no puede verificar su identidad. Si el navegador bloquea esa página sin opción de continuar, detén el servidor y ejecuta `py app.py run-local-http`; abre **http://127.0.0.1:5001/login**. Ese modo funciona solo en tu computadora y **no protege el tráfico**.
 
-La base operativa `instance/olist.db` se cifra con SQLCipher. La primera importación crea `instance/db.key`; guarda una copia de esa clave en un lugar protegido y separado de la base. Si ya existía una base SQLite sin cifrar, detén el servidor y ejecuta `py migrate_db.py` una sola vez. La migración crea primero un respaldo cifrado en `instance/pre-sqlcipher.enc` y conserva las cuentas y registros de auditoría. El archivo `db.key` no debe subirse a Git ni compartirse junto con la base. Esta demostración guarda la clave en el mismo equipo, por lo que no protege frente al robo de ambos archivos.
+Si la descarga automática de Kaggle falla, descarga manualmente [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) y guarda el ZIP como `data/olist.zip` antes de ejecutar `py import_data.py`. La copia usada para las cifras del informe tiene SHA-256 `967E41E04FC306FE604E2A693F488995A8B41E5047418F8A5C8E4ABD6DECA784`; si Kaggle cambia el archivo, los resultados pueden variar.
 
-Si un navegador bloquea el certificado autofirmado sin opción de continuar, ejecutar `py app.py run-local-http` y abrir `http://127.0.0.1:5001/login`. Este modo funciona **solo en la misma computadora** y permite mostrar el prototipo. Para demostrar protección en tránsito, usar el modo HTTPS o desplegar con un certificado válido.
+### Recorrido de prueba
 
-El panel principal usa React y componentes shadcn/ui. Flask sirve el frontend compilado desde `frontend/dist` y proporciona los indicadores en `/api/dashboard`. El inicio de sesión y la auditoría siguen siendo páginas Flask. Si se modifica `frontend/src`, repetir `npm run build` desde `frontend` y recargar el navegador. La versión anterior del panel está disponible en `/legacy`.
+1. Inicia sesión y comprueba los cuatro indicadores principales.
+2. Aplica un estado, por ejemplo `MA`, y observa cómo cambian el resumen, la tabla mensual y la comparación con feriados. La lista de estados sigue mostrando la comparación general.
+3. Abre **Auditoría** como administrador y verifica el registro de acceso y consultas. Los roles `analyst` y `reader` no pueden abrir esa página.
+4. Prueba un respaldo y su restauración a una ruta distinta:
 
-Para comprobar recuperación:
+   ```powershell
+   py backup.py backup instance\copia.enc
+   py backup.py restore instance\copia.enc --destination instance\restaurada.db
+   ```
 
-```powershell
-py backup.py backup instance\copia.enc
-py backup.py restore instance\copia.enc --destination instance\restaurada.db
-```
+   El programa comprueba la integridad. No reemplaces la base operativa con el archivo de prueba.
 
-`data/` contiene el ZIP original sin cifrar; `instance/` contiene la base cifrada, claves y respaldos. Ambos están ignorados por Git. El informe de entrega está en [informe/Informe_Olist.pdf](informe/Informe_Olist.pdf) y su código editable en [informe/Informe_Olist.tex](informe/Informe_Olist.tex). Para recompilarlo, ejecuta `pdflatex Informe_Olist.tex` dos veces desde `informe/`. [INFORME.md](INFORME.md) conserva las notas iniciales.
+## Archivos y protección de claves
 
-La copia del ZIP descargada para este prototipo tiene SHA-256 `967E41E04FC306FE604E2A693F488995A8B41E5047418F8A5C8E4ABD6DECA784`. Si Kaggle actualiza el archivo, el hash puede cambiar y conviene volver a validar las cifras.
+| Ruta | Función |
+|---|---|
+| `import_data.py`, `holidays_2018.csv` | Importación de las dos fuentes. |
+| `db_crypto.py`, `migrate_db.py` | Conexión cifrada y migración de una base SQLite antigua. |
+| `app.py`, `templates/` | Backend, autenticación y auditoría. |
+| `frontend/src/` | Panel React actual. |
+| `backup.py` | Respaldo y restauración. |
+| `informe/Informe_Olist.tex`, `informe/utec-logo.png` | Fuente LaTeX y logotipo del informe. |
+| `informe/Informe_Olist.pdf` | Informe compilado. |
 
-## Propuesta para presentar al profesor
+`data/` guarda el ZIP original. `instance/` guarda la base cifrada, `db.key`, la clave de sesión, la clave de respaldo y las copias. **Ambas carpetas están excluidas de Git.** Cada integrante genera sus propios archivos al importar y crear su usuario: Marco **no necesita** la base ni las claves de Ronal. Guarda una copia protegida de tus propias claves fuera de la carpeta del proyecto; si se pierde `db.key`, la base operativa no podrá abrirse. No publiques ZIP, claves, respaldos ni capturas con registros individuales.
 
-**Dataset base:** Brazilian E-Commerce Public Dataset by Olist: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+La clave de SQLCipher está en el mismo equipo que la base y el ZIP original no está cifrado. Esta implementación protege una copia aislada del archivo de base, pero no frente al compromiso del equipo completo. El servidor Flask es solo de desarrollo y escucha en `127.0.0.1`; no lo expongas en Internet.
 
-**Problema:** identificar entregas tardías y analizar su relación con las calificaciones de los clientes para priorizar mejoras logísticas.
+Si ya tenías una base SQLite sin cifrar, detén el servidor y ejecuta `py migrate_db.py` una sola vez. Primero se crea `instance/pre-sqlcipher.enc`, un respaldo cifrado de la versión anterior. La migración conserva usuarios y auditoría.
 
-**Usuario de la aplicación:** analista u operador de una tienda en línea.
+## Informe y trabajo en equipo
 
-**Datos complementarios:** calendario oficial de feriados nacionales de Brasil de 2017 y 2018. Se integrará por fecha de compra o entrega, dejando documentado que una asociación no demuestra causalidad.
+El informe completo está en [informe/Informe_Olist.pdf](informe/Informe_Olist.pdf). Para editarlo en Overleaf, sube `Informe_Olist.tex` y `utec-logo.png` desde la carpeta `informe/`. Compartan el proyecto de Overleaf con permiso de edición; cuando ambos aprueben la versión final, descarguen el PDF y actualicen este repositorio. La publicación del informe para el profesor en GitHub Pages se hará **después** de esa revisión.
 
-## Funciones mínimas
-
-1. Cargar y consultar pedidos, entregas, pagos y reseñas en una base de datos.
-2. Mostrar indicadores agrupados por mes, estado y vendedor.
-3. Filtrar pedidos tardíos y consultar su detalle según el rol del usuario.
-4. Registrar accesos y consultas sensibles.
-
-## Indicadores
-
-- Porcentaje de pedidos entregados después de la fecha estimada.
-- Días promedio de retraso entre los pedidos tardíos.
-- Calificación promedio de pedidos puntuales y tardíos.
-- Porcentaje de pedidos tardíos por estado y vendedor, solo cuando haya un número suficiente de pedidos para evitar conclusiones engañosas.
-
-Las metas numéricas se fijarán después de calcular una línea de base con los datos; no se inventarán porcentajes de mejora.
-
-## Seguridad y ética que se deben demostrar
-
-- Roles: administrador, analista y lector. El lector verá resultados agregados; el detalle de pedidos estará restringido.
-- HTTPS con un certificado de desarrollo y documentación de cómo usar uno válido en producción.
-- Contraseñas de cuentas de prueba almacenadas con un algoritmo de hash adecuado; nunca guardar contraseñas en texto claro.
-- Control de acceso en el backend y registros de auditoría sin secretos ni datos innecesarios.
-- Cifrado del almacenamiento o de los respaldos, según el entorno; copias de seguridad y prueba de restauración.
-- Política de minimización, retención y eliminación de datos; plan de respuesta ante filtración o pérdida.
-- Tratar los identificadores de cliente y datos geográficos como potencialmente sensibles, aunque el conjunto sea público. No publicar datos individuales en capturas o en el informe.
-- Distinguir los controles implementados de las recomendaciones futuras y explicar las limitaciones de una demostración académica.
-
-## Entrega prevista
-
-1. Aplicación de demostración: base de datos, backend y frontend sencillo.
-2. Informe escrito: contexto, fuentes, caso de negocio, objetivos, diseño funcional, arquitectura, amenazas, controles de seguridad, implementación, resultados, pruebas, lecciones aprendidas y retrospectiva del equipo.
-3. Evidencias: capturas del frontend, indicadores calculados y prueba documentada de un respaldo y restauración.
-
-## Siguientes pasos
-
-1. Confirmar el alcance de la primera entrega y los integrantes del equipo.
-2. Revisar la calidad de datos y las limitaciones del análisis con el profesor.
-3. Mejorar los controles pendientes descritos en el informe.
-4. Preparar capturas y revisión final del informe.
+Para colaborar en el código, Marco puede crear una rama, hacer sus cambios y abrir un *pull request* en el repositorio privado. Antes de subir cambios, revisen `git status` y comprueben que no aparezcan archivos de `data/` o `instance/`.
