@@ -19,6 +19,8 @@ py app.py run
 
 El comando `create-user` pide una contraseña de al menos 12 caracteres sin mostrarla. Abrir `https://127.0.0.1:5000` y aceptar la advertencia del certificado de desarrollo autofirmado. No usar este servidor de desarrollo para publicar el sitio.
 
+Si un navegador bloquea el certificado autofirmado sin opción de continuar, ejecutar `py app.py run-local-http` y abrir `http://127.0.0.1:5001/login`. Este modo funciona **solo en la misma computadora** y permite mostrar el prototipo. Para demostrar protección en tránsito, usar el modo HTTPS o desplegar con un certificado válido.
+
 Para comprobar recuperación:
 
 ```powershell

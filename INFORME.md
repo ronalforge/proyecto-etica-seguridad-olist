@@ -36,6 +36,8 @@ La fuente complementaria permite un corte exploratorio: en 2018, el 5,8 % de 641
 
 **Arquitectura:** un importador Python lee el ZIP de Olist y el CSV de feriados, selecciona columnas y guarda una tabla de entregas en SQLite. Una aplicación Flask consulta agregados en el backend y entrega páginas HTML/CSS. El servidor de desarrollo escucha únicamente en `127.0.0.1` y utiliza HTTPS con certificado autofirmado temporal generado por Flask.
 
+Para la demostración en navegadores que no aceptan ese certificado, hay un modo HTTP restringido a `127.0.0.1` en el puerto 5001. Este modo **no protege el transporte** y no debe exponerse en red ni usarse como evidencia de HTTPS.
+
 **Campos almacenados por entrega:** identificador interno, fechas de compra/entrega, estado del cliente, identificador de vendedor, calificación y medidas derivadas de retraso. No se guardan el identificador de cliente, código postal, ciudad ni coordenadas del CSV original. El identificador de vendedor es seudónimo en el dataset y se conserva para una posible extensión, pero no se expone en el panel actual.
 
 ## 5. Seguridad y ética

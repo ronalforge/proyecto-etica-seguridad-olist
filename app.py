@@ -164,7 +164,7 @@ def create_user(username, password, role):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=['run', 'create-user'])
+    parser.add_argument('command', choices=['run', 'run-local-http', 'create-user'])
     parser.add_argument('--username')
     parser.add_argument('--role', default='reader')
     args = parser.parse_args()
@@ -172,5 +172,9 @@ if __name__ == '__main__':
         import getpass
         create_user(args.username, getpass.getpass('Contraseña: '), args.role)
         print('Usuario creado')
+    elif args.command == 'run-local-http':
+        # Solo para ver el prototipo en navegadores que bloquean certificados autofirmados.
+        app.config['SESSION_COOKIE_SECURE'] = False
+        app.run(host='127.0.0.1', port=5001, debug=False)
     else:
         app.run(host='127.0.0.1', port=5000, debug=False, ssl_context='adhoc')
