@@ -304,7 +304,7 @@ Auditoría & Solo el administrador ve fecha UTC, usuario y acción. & Ruta \text
 \caption{Pruebas del prototipo local. No equivalen a una auditoría externa.}
 \end{table}
 
-No se han realizado pruebas de carga, revisión externa de seguridad ni validación de un despliegue de producción. La existencia del modo HTTPS se verifica por la configuración del servidor; una evidencia de transporte confiable requeriría un certificado validado por una CA y un entorno de despliegue distinto. Las capturas de pantalla pueden anexarse en la presentación final después de revisar que no muestren credenciales ni datos individuales.
+No se han realizado pruebas de carga, revisión externa de seguridad ni validación de un despliegue de producción. La existencia del modo HTTPS se verifica por la configuración del servidor; una evidencia de transporte confiable requeriría un certificado validado por una CA y un entorno de despliegue distinto.
 
 \section{Recomendaciones de protección futura}
 \begin{enumerate}
@@ -327,26 +327,6 @@ El prototipo responde al caso de negocio con métricas históricas verificables 
 
 En materia de seguridad, la solución implementa controles visibles de autenticación, roles, auditoría, HTTPS local y respaldo cifrado con restauración. La evaluación también identifica límites sustanciales: la base operativa y el ZIP original no están cifrados, la clave del respaldo está en el mismo entorno, el certificado es autofirmado y el modo HTTP local no ofrece confidencialidad de transporte. El informe distingue estas condiciones de la hoja de ruta futura. Por ello, el resultado es una \textbf{demostración académica funcional}, no un sistema listo para operar con datos personales reales en producción.
 
-\section{Correspondencia con el esquema y la rúbrica}
-\begin{table}[H]
-\centering\footnotesize
-\begin{tabularx}{\textwidth}{P{4.3cm}Y P{2.0cm}}
-\toprule
-Criterio del curso & Evidencia en este informe y prototipo & Sección\\
-\midrule
-Dataset aprobado, caso de negocio y fuente adicional & Olist, retrasos logísticos y Portaria 468/2017 & 2--4\\
-Valor medible / funcionalidad & KPI con denominadores, filtro, arquitectura y requerimientos & 3--5\\
-Protección en reposo y transporte; hash, accesos y logs & Controles implementados y brechas explícitas & 6\\
-Políticas, procedimientos y formación & Política de demostración y capacitación propuesta & 7\\
-Respuesta y contingencia & Fases, respaldo, restauración y límites & 8\\
-Recomendaciones futuras justificadas & Lista priorizada vinculada a riesgos & 10\\
-Diseño, implementación, pruebas y redacción & Arquitectura, componentes, resultados y validación & 5, 9\\
-Lecciones y retrospectiva del equipo & Aprendizajes y mejora del trabajo conjunto & 11\\
-\bottomrule
-\end{tabularx}
-\caption{Guía de revisión respecto del esquema del proyecto parcial DS3031.}
-\end{table}
-
 \begin{thebibliography}{9}
 \bibitem{esquema} Curso DS3031. \emph{Esquema Proyecto de Ética y Seguridad de Datos -- Tipo 1}. Material de clase proporcionado por el profesor.
 \bibitem{olist} Olist. \emph{Brazilian E-Commerce Public Dataset by Olist}. Kaggle. \url{https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce}. Consulta: septiembre de 2026.
@@ -355,20 +335,5 @@ Lecciones y retrospectiva del equipo & Aprendizajes y mejora del trabajo conjunt
 \bibitem{nistcsf} National Institute of Standards and Technology. \emph{The NIST Cybersecurity Framework (CSF) 2.0}, 2024. \url{https://www.nist.gov/cyberframework}. Consulta: septiembre de 2026.
 \bibitem{nistir} National Institute of Standards and Technology. \emph{SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management}, 2025. \url{https://csrc.nist.gov/pubs/sp/800/61/r3/final}. Consulta: septiembre de 2026.
 \end{thebibliography}
-
-\appendix
-\section{Reproducción local y verificaciones}
-Desde la carpeta del proyecto se instalan las dependencias Python y JavaScript, se coloca el ZIP Olist en \path{data/olist.zip}, se ejecuta el importador y se crea una cuenta con una contraseña ingresada de forma interactiva. Los comandos esenciales son:
-\begin{quote}\small\ttfamily
-py -m pip install -r requirements.txt\\
-py import\_data.py\\
-cd frontend ; npm install ; npm run build ; cd ..\\
-py app.py create-user --username usuario --role admin\\
-py app.py run
-\end{quote}
-La URL HTTPS local es \url{https://127.0.0.1:5000}. Para la demostración exclusivamente en la misma máquina, \texttt{py app.py run-local-http} habilita \url{http://127.0.0.1:5001}. La restauración se comprueba con \texttt{py backup.py backup} y \texttt{py backup.py restore} usando un archivo \texttt{.enc} y una ruta de destino distinta. Nunca se debe incluir la contraseña o las claves en el informe o en capturas.
-
-\section{Estado de la entrega}
-Este PDF y su código LaTeX documentan el proyecto local. La publicación externa aún no se ha realizado. Ambos integrantes deben revisar nombres, fuentes y contenido antes de presentarlo.
 
 \end{document}
