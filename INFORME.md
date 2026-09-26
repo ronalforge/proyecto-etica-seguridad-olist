@@ -34,7 +34,7 @@ La fuente complementaria permite un corte exploratorio: en 2018, el 5,8 % de 641
 
 **Funciones implementadas:** autenticación, panel con KPIs globales, filtro por estado, tendencia mensual, comparación regional, contraste entre compras en feriado y día común y vista de auditoría solo para administradores. El sistema evita mostrar registros individuales.
 
-**Arquitectura:** un importador Python lee el ZIP de Olist y el CSV de feriados, selecciona columnas y guarda una tabla de entregas en SQLite. Una aplicación Flask consulta agregados en el backend y entrega páginas HTML/CSS. El servidor de desarrollo escucha únicamente en `127.0.0.1` y utiliza HTTPS con certificado autofirmado temporal generado por Flask.
+**Arquitectura:** un importador Python lee el ZIP de Olist y el CSV de feriados, selecciona columnas y guarda una tabla de entregas en SQLite. Flask consulta los agregados y los expone en `/api/dashboard`; el panel React utiliza componentes de shadcn/ui y consume esa API. Flask entrega el frontend compilado, además de las páginas de inicio de sesión y auditoría. El servidor de desarrollo escucha únicamente en `127.0.0.1` y utiliza HTTPS con certificado autofirmado temporal generado por Flask.
 
 Para la demostración en navegadores que no aceptan ese certificado, hay un modo HTTP restringido a `127.0.0.1` en el puerto 5001. Este modo **no protege el transporte** y no debe exponerse en red ni usarse como evidencia de HTTPS.
 
@@ -64,6 +64,9 @@ Para la demostración en navegadores que no aceptan ese certificado, hay un modo
 - Prueba de roles: `reader` recibe 403 en auditoría y `admin` puede entrar.
 - Prueba de límite de acceso: después de cinco contraseñas incorrectas para un usuario, el siguiente intento devuelve 429.
 - Prueba de respaldo: se cifró una copia, se restauró en otra ruta y SQLite devolvió `integrity_check = ok` con 96 470 registros.
+- Prueba del frontend: compilación de TypeScript y Vite; panel y filtro por estado comprobados en el navegador local.
+
+En el panel, las tasas de feriados con menos de 30 pedidos se ocultan para evitar interpretar porcentajes basados en muestras demasiado pequeñas.
 
 La aplicación corre localmente; el certificado temporal genera una advertencia del navegador porque no procede de una CA confiable. No se ha realizado una auditoría de seguridad ni pruebas de carga. El dataset es histórico, por lo que los resultados no describen el comercio electrónico actual.
 

@@ -14,12 +14,18 @@ New-Item -ItemType Directory -Force data | Out-Null
 Invoke-WebRequest 'https://www.kaggle.com/api/v1/datasets/download/olistbr/brazilian-ecommerce' -OutFile 'data\olist.zip'
 py import_data.py
 py app.py create-user --username ronal --role admin
+cd frontend
+npm install
+npm run build
+cd ..
 py app.py run
 ```
 
 El comando `create-user` pide una contraseña de al menos 12 caracteres sin mostrarla. Abrir `https://127.0.0.1:5000` y aceptar la advertencia del certificado de desarrollo autofirmado. No usar este servidor de desarrollo para publicar el sitio.
 
 Si un navegador bloquea el certificado autofirmado sin opción de continuar, ejecutar `py app.py run-local-http` y abrir `http://127.0.0.1:5001/login`. Este modo funciona **solo en la misma computadora** y permite mostrar el prototipo. Para demostrar protección en tránsito, usar el modo HTTPS o desplegar con un certificado válido.
+
+El panel principal usa React y componentes shadcn/ui. Flask sirve el frontend compilado desde `frontend/dist` y proporciona los indicadores en `/api/dashboard`. El inicio de sesión y la auditoría siguen siendo páginas Flask. Si se modifica `frontend/src`, repetir `npm run build` desde `frontend` y recargar el navegador. La versión anterior del panel está disponible en `/legacy`.
 
 Para comprobar recuperación:
 

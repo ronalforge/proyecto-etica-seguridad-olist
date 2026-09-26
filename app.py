@@ -6,7 +6,7 @@ import sqlite3
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, abort, redirect, render_template, request, session, url_for
+from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 ROOT = Path(__file__).resolve().parent
@@ -110,6 +110,21 @@ def logout():
 @app.get('/')
 @login_required
 def dashboard():
+    built = ROOT / 'frontend' / 'dist'
+    if built.is_dir():
+        return send_from_directory(built, 'index.html')
+    return legacy_dashboard()
+
+
+@app.get('/assets/<path:filename>')
+@login_required
+def frontend_assets(filename):
+    return send_from_directory(ROOT / 'frontend' / 'dist' / 'assets', filename)
+
+
+@app.get('/legacy')
+@login_required
+def legacy_dashboard():
     if not DB.exists():
         abort(503, 'Primero ejecuta import_data.py')
     state = request.args.get('state', '').upper().strip()
@@ -142,6 +157,42 @@ def dashboard():
     audit('dashboard_view' + (':' + state if state else ''), session['username'])
     return render_template('dashboard.html', summary=summary, states=states,
                            months=months, holiday=holiday, state=state, csrf=csrf)
+
+
+@app.get('/api/dashboard')
+@login_required
+def dashboard_api():
+    state = request.args.get('state', '').upper().strip()
+    if state and (len(state) != 2 or not state.isalpha()):
+        abort(400)
+    where = 'WHERE customer_state = ?' if state else ''
+    params = (state,) if state else ()
+    with connect() as db:
+        summary = db.execute(f"""SELECT count(*) n, sum(is_late) late,
+            round(100.0 * avg(is_late), 1) late_pct,
+            round(avg(CASE WHEN is_late=1 THEN delay_days END), 1) avg_delay,
+            round(avg(CASE WHEN is_late=0 THEN review_score END), 2) ontime_review,
+            round(avg(CASE WHEN is_late=1 THEN review_score END), 2) late_review
+            FROM deliveries {where}""", params).fetchone()
+        states = db.execute("""SELECT customer_state state, count(*) n,
+            round(100.0 * avg(is_late),1) late_pct FROM deliveries
+            GROUP BY customer_state HAVING count(*) >= 30 ORDER BY late_pct DESC""").fetchall()
+        months = db.execute(f"""SELECT substr(purchase_date,1,7) month, count(*) n,
+            round(100.0 * avg(is_late),1) late_pct FROM deliveries {where}
+            GROUP BY substr(purchase_date,1,7) HAVING count(*) >= 30 ORDER BY month""", params).fetchall()
+        holiday = db.execute(f"""SELECT CASE WHEN h.date IS NULL THEN 'Día común' ELSE 'Feriado nacional' END day_type,
+            count(*) n, round(100.0 * avg(d.is_late),1) late_pct
+            FROM deliveries d LEFT JOIN holidays h ON d.purchase_date=h.date
+            WHERE d.purchase_date BETWEEN '2018-01-01' AND '2018-12-31'
+            {'AND d.customer_state = ?' if state else ''}
+            GROUP BY day_type ORDER BY day_type""", params).fetchall()
+    audit('dashboard_api' + (':' + state if state else ''), session['username'])
+    return jsonify({'state': state, 'summary': dict(summary),
+                    'states': [dict(row) for row in states],
+                    'months': [dict(row) for row in months],
+                    'holiday': [dict(row) for row in holiday],
+                    'user': {'username': session['username'], 'role': session['role']},
+                    'csrf': session.setdefault('csrf', secrets.token_urlsafe(32))})
 
 
 @app.get('/audit')
