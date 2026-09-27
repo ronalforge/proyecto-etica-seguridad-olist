@@ -66,12 +66,58 @@
       background-color: #27272a;
       color: #fafafa;
     }
+
+    /* Motion & Scroll Reveal */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal-on-scroll.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Card Micro-interactions */
+    .interactive-card {
+      transition: border-color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .interactive-card:hover {
+      border-color: #3f3f46;
+    }
+
+    /* Custom Image Zoom Cursor */
+    .zoomable-img {
+      cursor: zoom-in;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+    }
+    .zoomable-img:hover {
+      filter: brightness(1.03);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal-on-scroll {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+      #toc-pill, #toc-spine-indicator, #scroll-progress-line {
+        transition: none !important;
+      }
+      .interactive-card, .zoomable-img {
+        transition: none !important;
+      }
+    }
   </style>
 </head>
-<body class="min-h-screen bg-background text-foreground antialiased">
+<body class="min-h-screen bg-background text-foreground antialiased selection:bg-zinc-800 selection:text-zinc-100">
 
-  <!-- Top Sticky Navigation -->
+  <!-- Top Sticky Navigation with Hairline Reading Progress -->
   <header class="sticky top-0 z-50 border-b border-border/80 bg-background/80 backdrop-blur-md">
+    <!-- Top Hairline Scroll Progress Bar -->
+    <div id="scroll-progress-line" class="absolute bottom-0 left-0 h-[1.5px] bg-zinc-300 transition-all duration-75 ease-out" style="width: 0%;"></div>
+
     <div class="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 sm:px-8">
       <div class="flex items-center gap-3">
         <a href="#inicio" class="flex items-center gap-2.5 text-sm font-semibold tracking-tight text-foreground transition-opacity hover:opacity-85">
@@ -91,7 +137,7 @@
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3">
-        <a href="https://github.com/ronalforge/proyecto-etica-seguridad-olist" target="_blank" rel="noopener noreferrer" class="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-secondary/80 px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-foreground">
+        <a href="https://github.com/ronalforge/proyecto-etica-seguridad-olist" target="_blank" rel="noopener noreferrer" class="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-secondary/80 px-2.5 text-xs font-medium text-foreground transition-all hover:bg-accent hover:border-zinc-700">
           <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
           </svg>
@@ -99,7 +145,7 @@
         </a>
 
         <!-- Boton de Descarga de Informe LaTeX explicito -->
-        <a href="Informe_Olist.pdf" target="_blank" rel="noopener noreferrer" class="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground shadow-sm transition-colors hover:bg-zinc-200">
+        <a href="Informe_Olist.pdf" target="_blank" rel="noopener noreferrer" class="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground shadow-sm transition-all hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98]">
           <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="7 10 12 15 17 10"/>
@@ -110,6 +156,48 @@
       </div>
     </div>
   </header>
+
+  <!-- Mobile Horizontal Quick Navigation Bar (Sticky on mobile/tablet) -->
+  <div class="block lg:hidden sticky top-14 z-40 border-b border-border/80 bg-background/90 backdrop-blur-md px-4 py-2">
+    <div id="mobile-toc-bar" class="flex items-center gap-1.5 overflow-x-auto text-xs whitespace-nowrap scroll-smooth pb-0.5" style="scrollbar-width: none; -ms-overflow-style: none;">
+      <a href="#sec-resumen" data-target="sec-resumen" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">01</span><span>Resumen</span>
+      </a>
+      <a href="#sec-intro" data-target="sec-intro" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">02</span><span>Negocio</span>
+      </a>
+      <a href="#sec-fuentes" data-target="sec-fuentes" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">03</span><span>Fuentes</span>
+      </a>
+      <a href="#sec-analisis" data-target="sec-analisis" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">04</span><span>Análisis</span>
+      </a>
+      <a href="#sec-requerimientos" data-target="sec-requerimientos" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">05</span><span>Diseño</span>
+      </a>
+      <a href="#sec-seguridad" data-target="sec-seguridad" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">06</span><span>Seguridad</span>
+      </a>
+      <a href="#sec-politicas" data-target="sec-politicas" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">07</span><span>Políticas</span>
+      </a>
+      <a href="#sec-incidentes" data-target="sec-incidentes" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">08</span><span>Incidentes</span>
+      </a>
+      <a href="#sec-evidencias" data-target="sec-evidencias" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all font-medium">
+        <span class="font-mono text-[10px] text-zinc-500">09</span><span>Evidencias</span>
+      </a>
+      <a href="#sec-recomendaciones" data-target="sec-recomendaciones" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">10</span><span>Futuro</span>
+      </a>
+      <a href="#sec-retrospectiva" data-target="sec-retrospectiva" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">11</span><span>Retrospectiva</span>
+      </a>
+      <a href="#sec-conclusiones" data-target="sec-conclusiones" class="mobile-toc-link inline-flex items-center gap-1 rounded-md border border-border bg-secondary/80 px-2.5 py-1 text-xs text-muted-foreground transition-all">
+        <span class="font-mono text-[10px] text-zinc-500">12</span><span>Conclusiones</span>
+      </a>
+    </div>
+  </div>
 
   <!-- Hero Header Section -->
   <section id="inicio" class="border-b border-border bg-background py-14 sm:py-20">
@@ -144,7 +232,7 @@
 
         <!-- Action CTAs -->
         <div class="flex flex-wrap items-center gap-3 pt-4">
-          <a href="Informe_Olist.pdf" target="_blank" rel="noopener noreferrer" class="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground shadow-sm transition-colors hover:bg-zinc-200">
+          <a href="Informe_Olist.pdf" target="_blank" rel="noopener noreferrer" class="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground shadow-sm transition-all hover:bg-zinc-200 hover:scale-[1.01] active:scale-[0.99]">
             <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
               <polyline points="14 2 14 8 20 8"/>
@@ -155,7 +243,7 @@
             <span>Descargar informe LaTeX (PDF · 1.12 MB)</span>
           </a>
 
-          <a href="https://github.com/ronalforge/proyecto-etica-seguridad-olist" target="_blank" rel="noopener noreferrer" class="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-secondary/80 px-4 text-xs font-medium text-foreground transition-colors hover:bg-accent">
+          <a href="https://github.com/ronalforge/proyecto-etica-seguridad-olist" target="_blank" rel="noopener noreferrer" class="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-secondary/80 px-4 text-xs font-medium text-foreground transition-all hover:bg-accent hover:border-zinc-700">
             <svg class="size-4" fill="currentColor" viewBox="0 0 24 24">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
             </svg>
@@ -166,7 +254,7 @@
 
       <!-- KPI Summary Cards (Identical metrics to platform) -->
       <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border border-border bg-card p-5">
+        <div class="interactive-card rounded-lg border border-border bg-card p-5">
           <div class="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <span class="size-2 rounded-full bg-zinc-300"></span>
             <span>Entregas tardías</span>
@@ -175,7 +263,7 @@
           <p class="mt-2 text-xs text-muted-foreground">6 534 de 96 470 pedidos entregados tras la fecha estimada</p>
         </div>
 
-        <div class="rounded-lg border border-border bg-card p-5">
+        <div class="interactive-card rounded-lg border border-border bg-card p-5">
           <div class="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 2 2 4-4"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/></svg>
             <span>Pedidos analizados</span>
@@ -184,7 +272,7 @@
           <p class="mt-2 text-xs text-muted-foreground">Entregados con fechas y estado del cliente completos</p>
         </div>
 
-        <div class="rounded-lg border border-border bg-card p-5">
+        <div class="interactive-card rounded-lg border border-border bg-card p-5">
           <div class="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span>Retraso promedio</span>
@@ -193,7 +281,7 @@
           <p class="mt-2 text-xs text-muted-foreground">Calculado únicamente sobre los pedidos tardíos</p>
         </div>
 
-        <div class="rounded-lg border border-border bg-card p-5">
+        <div class="interactive-card rounded-lg border border-border bg-card p-5">
           <div class="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <svg class="size-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             <span>Calificación media</span>
@@ -205,36 +293,132 @@
     </div>
   </section>
 
-  <!-- Main Container with Sidebar + Content -->
+  <!-- Main Container with Dynamic Sidebar + Content Stream -->
   <div class="mx-auto max-w-7xl px-4 py-10 sm:px-8">
     <div class="grid grid-cols-1 gap-10 lg:grid-cols-12">
 
-      <!-- Minimal Table of Contents (Sticky) -->
+      <!-- Dynamic Magnetic Table of Contents (Sticky) -->
       <aside class="hidden lg:col-span-3 lg:block">
         <div class="sticky top-20 rounded-lg border border-border bg-card p-4">
-          <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Índice del Informe</div>
-          <nav class="mt-3 flex flex-col space-y-1.5 text-xs text-muted-foreground">
-            <a href="#sec-resumen" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">1. Resumen ejecutivo</a>
-            <a href="#sec-intro" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">2. Introducción y negocio</a>
-            <a href="#sec-fuentes" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">3. Fuentes de datos y calidad</a>
-            <a href="#sec-analisis" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">4. Análisis descriptivo</a>
-            <a href="#sec-requerimientos" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">5. Requerimientos y diseño</a>
-            <a href="#sec-seguridad" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">6. Seguridad y consideraciones éticas</a>
-            <a href="#sec-politicas" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">7. Políticas de uso y directrices</a>
-            <a href="#sec-incidentes" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">8. Respuesta ante incidentes</a>
-            <a href="#sec-evidencias" class="rounded px-2 py-1 font-medium text-foreground transition-colors hover:bg-secondary">9. Evidencias visuales</a>
-            <a href="#sec-recomendaciones" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">10. Recomendaciones futuras</a>
-            <a href="#sec-retrospectiva" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">11. Retrospectiva del equipo</a>
-            <a href="#sec-conclusiones" class="rounded px-2 py-1 transition-colors hover:bg-secondary hover:text-foreground">12. Conclusiones y referencias</a>
-          </nav>
+          <div class="flex items-center justify-between pb-1">
+            <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Índice del Informe</span>
+            <span class="rounded bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">12 secciones</span>
+          </div>
+
+          <!-- TOC Links Container with Spine & Magnetic Sliding Pill -->
+          <div class="relative mt-3 pl-3.5 border-l border-border">
+            <!-- Dynamic Spine Tracker Indicator (glides vertically) -->
+            <div id="toc-spine-indicator" class="absolute -left-[1px] w-[2px] rounded-full bg-zinc-200 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-0" style="top: 0px; height: 28px;"></div>
+
+            <!-- Magnetic Sliding Pill (glides behind active link) -->
+            <div id="toc-pill" class="absolute left-0 w-full rounded-md bg-secondary/90 border border-border/80 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] opacity-0" style="top: 0px; height: 32px;"></div>
+
+            <nav id="toc-nav" class="relative z-10 flex flex-col space-y-1 text-xs">
+              <a href="#sec-resumen" data-target="sec-resumen" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">01</span>
+                  <span class="toc-text transition-colors">Resumen ejecutivo</span>
+                </span>
+              </a>
+
+              <a href="#sec-intro" data-target="sec-intro" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">02</span>
+                  <span class="toc-text transition-colors">Introducción y negocio</span>
+                </span>
+              </a>
+
+              <a href="#sec-fuentes" data-target="sec-fuentes" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">03</span>
+                  <span class="toc-text transition-colors">Fuentes y calidad</span>
+                </span>
+              </a>
+
+              <a href="#sec-analisis" data-target="sec-analisis" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">04</span>
+                  <span class="toc-text transition-colors">Análisis descriptivo</span>
+                </span>
+              </a>
+
+              <a href="#sec-requerimientos" data-target="sec-requerimientos" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">05</span>
+                  <span class="toc-text transition-colors">Requerimientos y diseño</span>
+                </span>
+              </a>
+
+              <a href="#sec-seguridad" data-target="sec-seguridad" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">06</span>
+                  <span class="toc-text transition-colors">Seguridad y ética</span>
+                </span>
+              </a>
+
+              <a href="#sec-politicas" data-target="sec-politicas" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">07</span>
+                  <span class="toc-text transition-colors">Políticas de uso</span>
+                </span>
+              </a>
+
+              <a href="#sec-incidentes" data-target="sec-incidentes" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">08</span>
+                  <span class="toc-text transition-colors">Incidentes y contingencia</span>
+                </span>
+              </a>
+
+              <a href="#sec-evidencias" data-target="sec-evidencias" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">09</span>
+                  <span class="toc-text transition-colors font-medium">Evidencias visuales</span>
+                </span>
+                <span class="rounded bg-secondary px-1 py-0.2 font-mono text-[9px] text-zinc-400">4</span>
+              </a>
+
+              <a href="#sec-recomendaciones" data-target="sec-recomendaciones" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">10</span>
+                  <span class="toc-text transition-colors">Recomendaciones</span>
+                </span>
+              </a>
+
+              <a href="#sec-retrospectiva" data-target="sec-retrospectiva" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">11</span>
+                  <span class="toc-text transition-colors">Retrospectiva</span>
+                </span>
+              </a>
+
+              <a href="#sec-conclusiones" data-target="sec-conclusiones" class="toc-link group flex items-center justify-between rounded px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-foreground">
+                <span class="flex items-center gap-2">
+                  <span class="toc-num font-mono text-[10px] text-zinc-500 transition-colors group-hover:text-zinc-300">12</span>
+                  <span class="toc-text transition-colors">Conclusiones</span>
+                </span>
+              </a>
+            </nav>
+          </div>
+
+          <!-- Micro-Telemetry Reader Meter -->
+          <div class="mt-4 pt-3.5 border-t border-border flex flex-col gap-1.5 text-[11px] text-muted-foreground">
+            <div class="flex items-center justify-between">
+              <span id="toc-progress-label" class="font-medium text-foreground">Sección 01 de 12</span>
+              <span id="toc-progress-pct" class="font-mono text-zinc-400">8%</span>
+            </div>
+            <div class="w-full h-1 rounded-full bg-secondary overflow-hidden">
+              <div id="toc-progress-bar" class="h-full bg-zinc-300 rounded-full transition-all duration-200 ease-out" style="width: 8%;"></div>
+            </div>
+          </div>
         </div>
       </aside>
 
-      <!-- Main Document Stream -->
+      <!-- Main Document Stream with Smooth Scroll Reveals -->
       <main class="space-y-8 lg:col-span-9">
 
         <!-- 1. Resumen Ejecutivo -->
-        <section id="sec-resumen" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-resumen" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 01</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">1. Resumen ejecutivo</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -245,7 +429,7 @@
         </section>
 
         <!-- 2. Introducción y Caso de Negocio -->
-        <section id="sec-intro" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-intro" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 02</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">2. Introducción y caso de negocio</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -263,7 +447,7 @@
         </section>
 
         <!-- 3. Fuentes de Datos y Calidad -->
-        <section id="sec-fuentes" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-fuentes" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 03</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">3. Fuentes de datos, alcance y calidad</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -312,7 +496,7 @@
         </section>
 
         <!-- 4. Análisis Descriptivo -->
-        <section id="sec-analisis" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-analisis" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 04</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">4. Análisis descriptivo y utilidad para el negocio</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -322,7 +506,7 @@
         </section>
 
         <!-- 5. Requerimientos y Diseño Funcional -->
-        <section id="sec-requerimientos" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-requerimientos" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 05</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">5. Requerimientos y diseño funcional</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -336,7 +520,7 @@
         </section>
 
         <!-- 6. Seguridad y Consideraciones Éticas -->
-        <section id="sec-seguridad" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-seguridad" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 06</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">6. Seguridad y consideraciones éticas</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -351,7 +535,7 @@
         </section>
 
         <!-- 7. Políticas de Uso y Directrices -->
-        <section id="sec-politicas" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-politicas" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 07</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">7. Políticas de uso y directrices para colaboradores</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -365,7 +549,7 @@
         </section>
 
         <!-- 8. Respuesta ante Incidentes y Contingencia -->
-        <section id="sec-incidentes" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-incidentes" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 08</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">8. Respuesta ante incidentes y plan de contingencia</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -378,14 +562,14 @@
         </section>
 
         <!-- 9. IMPLEMENTACIÓN Y EVIDENCIAS VISUALES (Rubric Critical) -->
-        <section id="sec-evidencias" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-evidencias" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="border-b border-border pb-3">
             <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 09</div>
             <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">9. Implementación y evidencias visuales</h2>
           </div>
 
           <p class="mt-4 text-sm leading-6 text-muted-foreground">
-            Las siguientes capturas documentan la verificación visual de la plataforma en funcionamiento, el comportamiento reactivo de los filtros analíticos, la efectividad del control de acceso RBAC y las pruebas técnicas de seguridad en consola.
+            Las siguientes capturas documentan la verificación visual de la plataforma en funcionamiento, el comportamiento reactivo de los filtros analíticos, la efectividad del control de acceso RBAC y las pruebas técnicas de seguridad en consola. <span class="text-xs text-zinc-500 font-mono">(Haz clic en cualquier captura para ampliar)</span>
           </p>
 
           <!-- Figura 1 -->
@@ -398,8 +582,8 @@
               <span class="rounded border border-border bg-secondary px-2 py-0.5 text-xs text-muted-foreground">Vista global</span>
             </div>
 
-            <div class="mt-3 overflow-hidden rounded-md border border-border">
-              <img src="fig1_kpi_general.png" alt="Figura 1: Panel general de Olist Lab" class="w-full object-cover">
+            <div class="mt-3 overflow-hidden rounded-md border border-border bg-zinc-950">
+              <img src="fig1_kpi_general.png" alt="Figura 1: Panel general de Olist Lab" class="zoomable-img w-full object-cover" onclick="openLightbox(this.src, 'Figura 1: Panel general y fuentes')">
             </div>
 
             <div class="mt-3 space-y-1.5 text-xs leading-5 text-muted-foreground">
@@ -417,8 +601,8 @@
               <span class="rounded border border-border bg-secondary px-2 py-0.5 text-xs text-muted-foreground">Estado MA</span>
             </div>
 
-            <div class="mt-3 overflow-hidden rounded-md border border-border">
-              <img src="fig2_filtro_estado.png" alt="Figura 2: Filtro por estado MA" class="w-full object-cover">
+            <div class="mt-3 overflow-hidden rounded-md border border-border bg-zinc-950">
+              <img src="fig2_filtro_estado.png" alt="Figura 2: Filtro por estado MA" class="zoomable-img w-full object-cover" onclick="openLightbox(this.src, 'Figura 2: Filtro por estado MA')">
             </div>
 
             <div class="mt-3 space-y-1.5 text-xs leading-5 text-muted-foreground">
@@ -436,8 +620,8 @@
               <span class="rounded border border-border bg-secondary px-2 py-0.5 text-xs text-muted-foreground">Admin vs Reader</span>
             </div>
 
-            <div class="mt-3 overflow-hidden rounded-md border border-border">
-              <img src="fig3_auditoria_rbac.png" alt="Figura 3: Control RBAC y Auditoría" class="w-full object-cover">
+            <div class="mt-3 overflow-hidden rounded-md border border-border bg-zinc-950">
+              <img src="fig3_auditoria_rbac.png" alt="Figura 3: Control RBAC y Auditoría" class="zoomable-img w-full object-cover" onclick="openLightbox(this.src, 'Figura 3: Control RBAC y Auditoría')">
             </div>
 
             <div class="mt-3 space-y-1.5 text-xs leading-5 text-muted-foreground">
@@ -455,8 +639,8 @@
               <span class="rounded border border-border bg-secondary px-2 py-0.5 text-xs text-muted-foreground">Consola de seguridad</span>
             </div>
 
-            <div class="mt-3 overflow-hidden rounded-md border border-border">
-              <img src="fig4_seguridad_recuperacion.png" alt="Figura 4: Verificación técnica de seguridad" class="w-full object-cover">
+            <div class="mt-3 overflow-hidden rounded-md border border-border bg-zinc-950">
+              <img src="fig4_seguridad_recuperacion.png" alt="Figura 4: Verificación técnica de seguridad" class="zoomable-img w-full object-cover" onclick="openLightbox(this.src, 'Figura 4: Verificación técnica de seguridad')">
             </div>
 
             <div class="mt-3 space-y-2 text-xs leading-5 text-muted-foreground">
@@ -470,7 +654,7 @@
         </section>
 
         <!-- 10. Recomendaciones Futuras -->
-        <section id="sec-recomendaciones" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-recomendaciones" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 10</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">10. Recomendaciones de protección futura</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -483,7 +667,7 @@
         </section>
 
         <!-- 11. Retrospectiva del Equipo -->
-        <section id="sec-retrospectiva" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-retrospectiva" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 11</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">11. Lecciones aprendidas y retrospectiva del equipo</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -501,7 +685,7 @@
         </section>
 
         <!-- 12. Conclusiones y Referencias -->
-        <section id="sec-conclusiones" class="rounded-lg border border-border bg-card p-6 sm:p-7">
+        <section id="sec-conclusiones" class="reveal-on-scroll interactive-card rounded-lg border border-border bg-card p-6 sm:p-7">
           <div class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sección 12</div>
           <h2 class="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">12. Conclusiones y referencias</h2>
           <div class="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
@@ -519,7 +703,7 @@
         </section>
 
         <!-- Footer -->
-        <footer class="border-t border-border pt-6 pb-10 text-center text-xs text-muted-foreground">
+        <footer class="border-t border-border pt-6 pb-12 text-center text-xs text-muted-foreground">
           <p>© 2026 Universidad de Ingeniería y Tecnología — UTEC · DS3031 Ética y Seguridad de Datos</p>
           <p class="mt-1">Ronal Jesus Condor Blas & Marco Soto Maceda · Proyecto Parcial</p>
         </footer>
@@ -528,5 +712,206 @@
     </div>
   </div>
 
+  <!-- Image Lightbox Modal (Minimalist Dark) -->
+  <div id="lightbox-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 opacity-0 pointer-events-none transition-opacity duration-200" onclick="closeLightbox()">
+    <div class="relative max-w-5xl w-full max-h-[92vh] flex flex-col items-center">
+      <div class="flex w-full items-center justify-between pb-3 text-xs text-zinc-300">
+        <span id="lightbox-caption" class="font-medium text-zinc-200"></span>
+        <button onclick="closeLightbox()" class="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-zinc-300 hover:text-white transition-colors">
+          Cerrar (Esc)
+        </button>
+      </div>
+      <img id="lightbox-img" src="" alt="Captura ampliada" class="rounded-lg border border-zinc-800 object-contain max-h-[82vh] w-auto shadow-2xl">
+    </div>
+  </div>
+
+  <!-- Motion & Navigation Engine -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Reading Hairline Progress Bar
+      const progressBar = document.getElementById('scroll-progress-line');
+      window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        if (progressBar) progressBar.style.width = `${scrolled}%`;
+      }, { passive: true });
+
+      // 2. Scroll Reveal Animations (IntersectionObserver)
+      const revealElements = document.querySelectorAll('.reveal-on-scroll');
+      if ('IntersectionObserver' in window) {
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('revealed');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+      } else {
+        revealElements.forEach(el => el.classList.add('revealed'));
+      }
+
+      // 3. Dynamic Magnetic Table of Contents Engine
+      const tocLinks = Array.from(document.querySelectorAll('.toc-link'));
+      const tocPill = document.getElementById('toc-pill');
+      const tocSpine = document.getElementById('toc-spine-indicator');
+      const progressLabel = document.getElementById('toc-progress-label');
+      const progressPct = document.getElementById('toc-progress-pct');
+      const progressMeter = document.getElementById('toc-progress-bar');
+      const sections = tocLinks.map(link => document.getElementById(link.dataset.target)).filter(Boolean);
+
+      let currentActiveIndex = 0;
+
+      function updateActiveTOC(index, userInitiated = false) {
+        if (index < 0 || index >= tocLinks.length) return;
+        currentActiveIndex = index;
+        const activeLink = tocLinks[index];
+
+        // Move Magnetic Sliding Pill
+        if (tocPill && activeLink) {
+          const top = activeLink.offsetTop;
+          const height = activeLink.offsetHeight;
+          tocPill.style.transform = `translateY(${top}px)`;
+          tocPill.style.height = `${height}px`;
+          tocPill.style.opacity = '1';
+        }
+
+        // Move Spine Indicator
+        if (tocSpine && activeLink) {
+          const top = activeLink.offsetTop;
+          const height = activeLink.offsetHeight;
+          tocSpine.style.transform = `translateY(${top}px)`;
+          tocSpine.style.height = `${height}px`;
+          tocSpine.style.opacity = '1';
+        }
+
+        // Update Text Styles & Monospace Numbers
+        tocLinks.forEach((link, i) => {
+          const num = link.querySelector('.toc-num');
+          const text = link.querySelector('.toc-text');
+          if (i === index) {
+            link.classList.remove('text-muted-foreground');
+            link.classList.add('text-foreground');
+            if (num) {
+              num.classList.remove('text-zinc-500');
+              num.classList.add('text-zinc-200');
+            }
+            if (text) text.classList.add('font-medium');
+          } else {
+            link.classList.remove('text-foreground');
+            link.classList.add('text-muted-foreground');
+            if (num) {
+              num.classList.remove('text-zinc-200');
+              num.classList.add('text-zinc-500');
+            }
+            if (text) text.classList.remove('font-medium');
+          }
+        });
+
+        // Sync Mobile Navigation Pills
+        const mobileLinks = Array.from(document.querySelectorAll('.mobile-toc-link'));
+        mobileLinks.forEach((mlink, mi) => {
+          if (mi === index) {
+            mlink.classList.remove('text-muted-foreground', 'border-border', 'bg-secondary/80');
+            mlink.classList.add('text-foreground', 'border-zinc-500', 'bg-zinc-800', 'font-medium');
+            mlink.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+          } else {
+            mlink.classList.remove('text-foreground', 'border-zinc-500', 'bg-zinc-800', 'font-medium');
+            mlink.classList.add('text-muted-foreground', 'border-border', 'bg-secondary/80');
+          }
+        });
+
+        // Update Micro-Telemetry
+        const secNumber = String(index + 1).padStart(2, '0');
+        const pct = Math.round(((index + 1) / tocLinks.length) * 100);
+        if (progressLabel) progressLabel.textContent = `Sección ${secNumber} de ${tocLinks.length}`;
+        if (progressPct) progressPct.textContent = `${pct}%`;
+        if (progressMeter) progressMeter.style.width = `${pct}%`;
+      }
+
+      // IntersectionObserver for Dual-Threshold Section Tracking
+      if ('IntersectionObserver' in window) {
+        const tocObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id;
+              const index = tocLinks.findIndex(l => l.dataset.target === id);
+              if (index !== -1) {
+                updateActiveTOC(index);
+              }
+            }
+          });
+        }, {
+          rootMargin: '-15% 0px -70% 0px',
+          threshold: 0
+        });
+
+        sections.forEach(sec => tocObserver.observe(sec));
+      }
+
+      // Smooth Click Navigation with Accurate Header Offset (handles Desktop & Mobile)
+      const allNavLinks = Array.from(document.querySelectorAll('.toc-link, .mobile-toc-link'));
+      allNavLinks.forEach((link) => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetId = link.dataset.target;
+          const targetSection = document.getElementById(targetId);
+          if (targetSection) {
+            const isMobile = window.innerWidth < 1024;
+            const headerOffset = isMobile ? 108 : 68; // Account for mobile bar or desktop header
+            const elementPosition = targetSection.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+            const index = tocLinks.findIndex(l => l.dataset.target === targetId);
+            if (index !== -1) updateActiveTOC(index, true);
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+
+            if (history.pushState) {
+              history.pushState(null, null, `#${targetId}`);
+            }
+          }
+        });
+      });
+
+      // Initial TOC setup
+      setTimeout(() => {
+        updateActiveTOC(0);
+      }, 100);
+    });
+
+    // 4. Minimalist Image Lightbox
+    function openLightbox(src, caption) {
+      const modal = document.getElementById('lightbox-modal');
+      const img = document.getElementById('lightbox-img');
+      const cap = document.getElementById('lightbox-caption');
+      if (modal && img && cap) {
+        img.src = src;
+        cap.textContent = caption || '';
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeLightbox() {
+      const modal = document.getElementById('lightbox-modal');
+      if (modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('opacity-100');
+        document.body.style.overflow = '';
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+  </script>
 </body>
 </html>
