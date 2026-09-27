@@ -179,32 +179,27 @@
           </div>
         </section>
 
-        <!-- 9. IMPLEMENTACIÓN Y EVIDENCIAS VISUALES (CRÍTICA PARA LA RÚBRICA) -->
-        <section id="sec-implementacion" class="rounded-2xl border-2 border-cyan-500/40 bg-slate-900/50 p-6 sm:p-8 shadow-xl shadow-cyan-950/20">
-          <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-            <div>
-              <span class="text-xs font-bold uppercase tracking-wider text-cyan-400">Validación de Rúbrica</span>
-              <h2 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">9. Implementación y evidencias visuales</h2>
-            </div>
-            <span class="rounded-full bg-cyan-500/20 px-3 py-1 text-xs font-semibold text-cyan-300">4 Figuras Clave</span>
+        <!-- 9. IMPLEMENTACIÓN Y EVIDENCIAS VISUALES -->
+        <section id="sec-implementacion" class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 sm:p-8">
+          <div class="border-b border-slate-800 pb-4">
+            <h2 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">9. Implementación y evidencias visuales</h2>
           </div>
 
           <p class="mt-4 text-sm text-slate-300 leading-relaxed">
-            Se presentan las evidencias gráficas obtenidas directamente durante la ejecución del prototipo local, organizadas con su correspondiente pie de figura, análisis de lo observado y el requisito formal que acredita según la rúbrica del curso.
+            A continuación se presentan las capturas del prototipo en funcionamiento, documentando la interfaz del panel general, la reactividad del filtrado regional, el control de acceso a la auditoría y las pruebas de seguridad ejecutadas sobre la base de datos y el transporte.
           </p>
 
           <!-- FIGURA 1 -->
           <div class="mt-8 rounded-xl border border-slate-800 bg-slate-950 p-5">
             <h3 class="text-base font-bold text-white flex items-center gap-2">
               <span class="flex size-6 items-center justify-center rounded-full bg-cyan-500 text-xs font-bold text-slate-950">1</span>
-              Panel General: KPIs y Trazabilidad de Fuentes
+              Panel General: KPIs y Detalle de Fuentes
             </h3>
             <div class="mt-4 overflow-hidden rounded-lg border border-slate-800">
               <img src="fig1_kpi_general.png" alt="Figura 1: Panel general de Olist Lab" class="w-full object-cover">
             </div>
             <div class="mt-4 space-y-2 text-xs leading-relaxed text-slate-300">
-              <p><strong class="text-white">Qué se observa:</strong> Interfaz interactiva desplegada en React tras autenticarse con el usuario administrador (<code class="text-cyan-300">marco · admin</code>). Exhibe los 4 KPIs clave: <strong>6.8 %</strong> de entregas tardías, <strong>96 470</strong> pedidos analizados, <strong>10.6 días</strong> de retraso promedio y calificaciones de <strong>4.29/5</strong> (puntual) vs. <strong>2.27/5</strong> (tardía), además de la comparación regional y el pie con las fuentes oficiales.</p>
-              <p><strong class="text-cyan-400">Requisito que demuestra:</strong> <em>Requerimientos de Negocio y Funcionales (F1, F2).</em> Generación cuantificable y objetiva de valor logístico a partir de datos históricos, aplicando agregación y minimización sin comprometer la privacidad del cliente.</p>
+              <p><strong class="text-white">Detalle y validación:</strong> Interfaz interactiva desplegada en React tras autenticarse con el usuario administrador (<code class="text-cyan-300">marco · admin</code>). Exhibe los 4 KPIs clave: <strong>6.8 %</strong> de entregas tardías, <strong>96 470</strong> pedidos analizados, <strong>10.6 días</strong> de retraso promedio y calificaciones de <strong>4.29/5</strong> (puntual) vs. <strong>2.27/5</strong> (tardía), además de la comparación regional y el pie con las fuentes oficiales. Esta vista confirma que los datos se presentan agregados, sin exponer nombres, direcciones ni identificadores de clientes.</p>
             </div>
           </div>
 
@@ -218,8 +213,7 @@
               <img src="fig2_filtro_estado.png" alt="Figura 2: Filtro por estado MA" class="w-full object-cover">
             </div>
             <div class="mt-4 space-y-2 text-xs leading-relaxed text-slate-300">
-              <p><strong class="text-white">Qué se observa:</strong> El panel tras aplicar el filtro al estado de Maranhão (<code class="text-cyan-300">MA</code>). Los pedidos se reducen a 717, la tasa de tardanza sube al <strong>17.4 %</strong> (125 pedidos tardíos), el retraso medio se ajusta a 10.5 días y la satisfacción desciende a 4.17 (a tiempo) y 2.18 (tardío). La serie temporal mensual se adapta exclusivamente a dicho estado.</p>
-              <p><strong class="text-cyan-400">Requisito que demuestra:</strong> <em>Requerimiento Funcional F2 y Diseño Frontend/Backend.</em> Exploración reactiva de segmentos críticos mediante consultas parametrizadas en la API REST (<code class="text-slate-400">/api/dashboard?state=MA</code>), evitando inyecciones SQL.</p>
+              <p><strong class="text-white">Detalle y validación:</strong> Al aplicar el filtro para el estado de Maranhão (<code class="text-cyan-300">MA</code>), la aplicación actualiza las cifras mediante la API: el total de pedidos analizados pasa a 717, la tasa de tardanza sube a 17.4 % (125 entregas tardías), el retraso medio se sitúa en 10.5 días y la satisfacción desciende a 4.17/5 (puntuales) y 2.18/5 (tardíos). La tabla mensual inferior se ajusta automáticamente para mostrar únicamente la serie temporal de este estado, verificando la consistencia de las consultas parametrizadas en el backend SQL sin riesgo de inyecciones.</p>
             </div>
           </div>
 
@@ -227,14 +221,13 @@
           <div class="mt-8 rounded-xl border border-slate-800 bg-slate-950 p-5">
             <h3 class="text-base font-bold text-white flex items-center gap-2">
               <span class="flex size-6 items-center justify-center rounded-full bg-cyan-500 text-xs font-bold text-slate-950">3</span>
-              Auditoría y Control RBAC: Visibilidad Admin vs. Bloqueo 403 Reader
+              Control de Acceso (RBAC) y Registro de Auditoría
             </h3>
             <div class="mt-4 overflow-hidden rounded-lg border border-slate-800">
               <img src="fig3_auditoria_rbac.png" alt="Figura 3: Control RBAC y Auditoría" class="w-full object-cover">
             </div>
             <div class="mt-4 space-y-2 text-xs leading-relaxed text-slate-300">
-              <p><strong class="text-white">Qué se observa:</strong> En el panel (a), la consulta de <code class="text-cyan-300">/audit</code> por el rol <code class="text-cyan-300">admin</code> exhibiendo la traza con fecha UTC, usuario y acciones (<code class="text-slate-400">login</code>, <code class="text-slate-400">dashboard_api:MA</code>, etc.). En el panel (b), la denegación estricta con código <strong class="text-red-400">HTTP 403 Forbidden</strong> cuando el usuario <code class="text-amber-300">lector</code> (rol <code class="text-amber-300">reader</code>) intenta ingresar a la auditoría.</p>
-              <p><strong class="text-cyan-400">Requisito que demuestra:</strong> <em>Requerimientos de Seguridad en Gestión de Accesos y Auditoría (F4).</em> Aplicación del principio de menor privilegio (RBAC) y trazabilidad inmutable sin exposición de credenciales.</p>
+              <p><strong class="text-white">Detalle y validación:</strong> En el panel superior (a), la ruta administrativa <code class="text-cyan-300">/audit</code> es accesible para el rol <code class="text-cyan-300">admin</code> (<code class="text-slate-300">marco</code>), listando en orden cronológico inverso los eventos de auditoría: marca de tiempo UTC, usuario y acción (<code class="text-slate-400">login</code>, <code class="text-slate-400">dashboard_api:MA</code>, <code class="text-slate-400">audit_view</code>). En el panel inferior (b), se evidencia la restricción de privilegios: cuando un usuario con rol <code class="text-amber-300">reader</code> (<code class="text-amber-300">lector</code>) intenta ingresar a dicha ruta, Flask bloquea la solicitud y devuelve un código <strong class="text-red-400">HTTP 403 Forbidden</strong>, impidiendo el acceso a los registros de auditoría a roles no autorizados.</p>
             </div>
           </div>
 
@@ -242,18 +235,17 @@
           <div class="mt-8 rounded-xl border border-slate-800 bg-slate-950 p-5">
             <h3 class="text-base font-bold text-white flex items-center gap-2">
               <span class="flex size-6 items-center justify-center rounded-full bg-cyan-500 text-xs font-bold text-slate-950">4</span>
-              Seguridad Técnica: SQLCipher, Respaldo AES-256-GCM y HTTPS TLS 1.3
+              Pruebas Técnicas: Cifrado en Reposo, Contingencia y HTTPS
             </h3>
             <div class="mt-4 overflow-hidden rounded-lg border border-slate-800">
               <img src="fig4_seguridad_recuperacion.png" alt="Figura 4: Verificación técnica de seguridad" class="w-full object-cover">
             </div>
             <div class="mt-4 space-y-2 text-xs leading-relaxed text-slate-300">
-              <p><strong class="text-white">Qué se observa:</strong> Sesión interactiva en terminal comprobando:
-                <br>1) <em>Cifrado en reposo (SQLCipher):</em> cabecera sin texto plano; el cliente <code class="text-slate-400">sqlite3</code> falla arrojando <code class="text-red-400">file is not a database (26)</code> y solo abre con la clave de 256 bits recuperando los 96 470 registros.
-                <br>2) <em>Contingencia y recuperación:</em> respaldo cifrado con AES-256-GCM y restauración comprobada con <code class="text-emerald-400">integrity_check = ok</code>.
-                <br>3) <em>Transporte HTTPS:</em> negociación <strong class="text-cyan-400">TLS 1.3</strong> con suite <code class="text-slate-400">AEAD-AES256-GCM-SHA384</code> y certificado ad-hoc.
+              <p><strong class="text-white">Detalle y validación:</strong> En la sesión de consola se comprueban tres mecanismos de seguridad implementados:
+                <br>1) <em>Cifrado en reposo (SQLCipher):</em> la lectura inicial de los primeros 16 bytes de <code class="text-slate-400">instance/olist.db</code> mediante <code class="text-slate-400">xxd</code> muestra bytes aleatorios y confirma la ausencia de la cadena legible <code class="text-slate-400">SQLite format 3</code>. El cliente estándar <code class="text-slate-400">sqlite3</code> rechaza el archivo con <code class="text-red-400">file is not a database (26)</code>, mientras que la conexión mediante SQLCipher con la clave local de 256 bits (<code class="text-slate-400">instance/db.key</code>) abre la base y recupera los 96 470 registros.
+                <br>2) <em>Contingencia y recuperación:</em> ejecución de <code class="text-slate-400">backup.py backup</code>, generando un respaldo cifrado y autenticado con AES-256-GCM (<code class="text-slate-400">instance/copia.enc</code>). Su posterior restauración con <code class="text-slate-400">backup.py restore</code> comprueba la integridad estructural (<code class="text-emerald-400">integrity_check = ok</code>) y confirma la recuperación exacta de las 96 470 filas en una base independiente.
+                <br>3) <em>Protección en tránsito (HTTPS local):</em> negociación TLS 1.3 con cifrado AES-256-GCM y certificado autofirmado ad-hoc en Flask, validando la entrega de cabeceras de seguridad (<code class="text-slate-400">Cache-Control: no-store</code> y cookies con atributo <code class="text-slate-400">Secure</code>).
               </p>
-              <p><strong class="text-cyan-400">Requisito que demuestra:</strong> <em>Requerimientos Técnicos y de Seguridad: Cifrado en Reposo, Cifrado en Tránsito y Procesos de Recuperación ante Desastres.</em></p>
             </div>
           </div>
         </section>
@@ -263,16 +255,15 @@
           <h2 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">11. Lecciones aprendidas y retrospectiva del equipo</h2>
           <div class="mt-4 space-y-4 text-sm leading-relaxed text-slate-300">
             <h3 class="text-lg font-semibold text-white">11.1 Lecciones técnicas y analíticas</h3>
-            <p>La principal lección técnica es que un dataset público puede contener columnas innecesarias para responder la pregunta de negocio. Definir primero el denominador del KPI permitió importar menos campos y detectar los 646 pedidos sin reseña. En seguridad, restaurar una copia aportó evidencia más contundente que solo generar el archivo cifrado; asimismo, evidenció el límite de custodiar la clave en el mismo equipo.</p>
+            <p>La principal lección técnica es que un dataset público puede contener columnas innecesarias para responder la pregunta de negocio. Definir primero el denominador del KPI permitió importar menos campos y detectar los 646 pedidos sin reseña. La comparación con feriados mostró que una cifra atractiva puede ser engañosa cuando los tamaños de grupo son muy distintos. En seguridad, restaurar una copia aportó evidencia más contundente que solo generar el archivo cifrado; asimismo, evidenció el límite de custodiar la clave en el mismo equipo.</p>
             <h3 class="text-lg font-semibold text-white">11.2 Retrospectiva del equipo</h3>
             <ul class="list-disc pl-5 space-y-1 text-slate-300">
-              <li>Llevar un registro estructurado de decisiones arquitectónicas y de seguridad (ADR).</li>
-              <li>Implementar revisión cruzada sistemática de código (<em>peer review</em>) para importadores y controles de acceso.</li>
-              <li>Ejecutar simulacros periódicos de incidentes con la participación de ambos integrantes.</li>
+              <li>Llevar un registro estructurado de decisiones técnicas y de arquitectura para mantener la trazabilidad de cada cambio.</li>
+              <li>Implementar revisión cruzada sistemática de código (<em>peer review</em>) antes de integrar cambios en el importador y en los controles de acceso.</li>
+              <li>Ejecutar pruebas conjuntas periódicas para verificar la restauración de respaldos y el comportamiento ante incidentes.</li>
+              <li>Formalizar una lista de verificación previa a la entrega para constatar la exclusión de claves y la vigencia de la documentación técnica.</li>
             </ul>
-            <h3 class="text-lg font-semibold text-white">11.3 Declaración sobre el uso de herramientas generativas y plataforma</h3>
-            <p>Conforme a las pautas de la rúbrica del curso DS3031, se declara el uso asistido de herramientas de inteligencia artificial generativa durante el desarrollo del proyecto como apoyo en la estructuración de componentes y optimización sintáctica. Todas las decisiones arquitectónicas y de seguridad fueron verificadas y asumidas por el equipo.</p>
-            <p>El código y la documentación se encuentran en GitHub (<a href="https://github.com/ronalforge/proyecto-etica-seguridad-olist" class="text-cyan-400 underline">ronalforge/proyecto-etica-seguridad-olist</a>), excluyendo bases y claves mediante reglas de control de versiones. Este sitio web en GitHub Pages representa la versión interactiva y pública para la evaluación del curso.</p>
+            <p class="pt-2 text-xs text-slate-400">El código fuente y la versión interactiva del informe se encuentran disponibles en el repositorio del proyecto (<a href="https://github.com/ronalforge/proyecto-etica-seguridad-olist" class="text-cyan-400 underline">ronalforge/proyecto-etica-seguridad-olist</a>) y en su correspondiente despliegue en GitHub Pages.</p>
           </div>
         </section>
 
