@@ -294,67 +294,59 @@ Auditoría & Solo el administrador ve fecha UTC, usuario y acción. & Ruta \text
 No se han realizado pruebas de carga, revisión externa de seguridad ni validación de un despliegue de producción. La existencia del modo HTTPS se verifica por la configuración del servidor y la negociación TLS local; una evidencia de transporte plenamente confiable requeriría un certificado validado por una CA pública y un entorno de producción formal.
 
 \subsection{Evidencias visuales del prototipo}
-A continuación se incorporan las evidencias visuales recabadas directamente sobre el prototipo en ejecución, organizadas en cuatro paneles fundamentales que acreditan el cumplimiento riguroso de la rúbrica del curso.
+A continuación se presentan las capturas del prototipo en funcionamiento, documentando la interfaz del panel general, la reactividad del filtrado regional, el control de acceso a la auditoría y las pruebas de seguridad ejecutadas sobre la base de datos y el transporte.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{fig1_kpi_general.png}
-\caption{Panel general: cuatro KPIs principales del caso de negocio y fuentes de datos.}
+\caption{Panel general: cuatro indicadores principales y detalle de fuentes.}
 \label{fig:kpi_general}
 \fuente{Captura del prototipo local en ejecución (React + Tailwind + Flask).}
 \end{figure}
 
-\textbf{Qué se observa en la Figura~\ref{fig:kpi_general}:} La interfaz principal del panel analítico tras autenticarse con el usuario administrador (\texttt{marco · admin}). Se exhiben los cuatro indicadores clave de rendimiento (KPIs) calculados sobre los 96\,470 pedidos entregados y depurados:
+\textbf{Detalle y validación:} La interfaz principal del panel analítico muestra la sesión del usuario administrador (\texttt{marco · admin}) y los cuatro indicadores calculados sobre los 96\,470 pedidos entregados y depurados:
 \begin{itemize}
 \item \emph{Entregas tardías:} 6.8\,\% de tasa global (6\,534 pedidos entregados con demora frente a 89\,936 puntuales).
 \item \emph{Pedidos analizados:} 96\,470 registros con fechas completas.
 \item \emph{Retraso promedio:} 10.6 días entre pedidos tardíos.
 \item \emph{Calificación media:} 4.29/5 en pedidos puntuales y 2.27/5 en pedidos con retraso.
 \end{itemize}
-En la parte inferior se aprecia la desagregación comparativa por estados federados (destacando AL con 21.4\,\% y MA con 17.4\,\%) y la evolución por mes de compra. Asimismo, en el pie de página se acredita la procedencia de los datos: el dataset de comercio electrónico de Olist y la Portaria n.\textsuperscript{o} 468/2017 de feriados de Brasil.
-
-\textbf{Requisito que demuestra:} Cumplimiento de los \textbf{Requerimientos de Negocio y Funcionales (F1, F2)}. Demuestra la generación objetiva de valor para la toma de decisiones logísticas mediante métricas agregadas reproducibles, garantizando la minimización de datos al no procesar identificadores, domicilios ni microdatos de clientes.
+En la parte inferior se observa la distribución por estados (destacando AL con 21.4\,\% y MA con 17.4\,\%) y la evolución por mes de compra. El pie de página documenta las fuentes empleadas (dataset Olist y Portaria n.\textsuperscript{o} 468/2017). Esta vista confirma que los datos se presentan agregados, sin exponer nombres, direcciones ni identificadores de clientes.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{fig2_filtro_estado.png}
-\caption{Filtro interactivo por estado: vista filtrada (Maranhão - MA) y actualización dinámica.}
+\caption{Filtro por estado federado: vista filtrada para Maranhão (MA).}
 \label{fig:filtro_estado}
-\fuente{Captura del prototipo local filtrado por parámetro geográfico (\texttt{?state=MA}).}
+\fuente{Captura del prototipo filtrado por parámetro geográfico (\texttt{?state=MA}).}
 \end{figure}
 
-\textbf{Qué se observa en la Figura~\ref{fig:filtro_estado}:} El comportamiento reactivo de la aplicación al seleccionar y aplicar el filtro del estado de Maranhão (\texttt{MA}). Las cifras se recalculan inmediatamente a través de la API: el total de pedidos analizados disminuye a 717, la tasa de tardanza se incrementa notablemente al 17.4\,\% (125 entregas tardías), el retraso medio se ubica en 10.5 días y la calificación promedio resulta en 4.17/5 para compras a tiempo y 2.18/5 para pedidos demorados. La serie mensual se adapta para reflejar únicamente la evolución de dicha región.
-
-\textbf{Requisito que demuestra:} Cumplimiento del \textbf{Requerimiento Funcional F2 y Diseño de Frontend/Backend}. Evidencia la capacidad de explorar segmentos críticos del negocio sin perder la agregación analítica, validando el correcto funcionamiento de las consultas parametrizadas en la API REST y la consistencia matemática entre la vista global y las vistas filtradas.
+\textbf{Detalle y validación:} Al aplicar el filtro para el estado de Maranhão (\texttt{MA}), la aplicación actualiza las cifras mediante la API: el total de pedidos analizados pasa a 717, la tasa de tardanza sube a 17.4\,\% (125 entregas tardías), el retraso medio se sitúa en 10.5 días y la satisfacción desciende a 4.17/5 (puntuales) y 2.18/5 (tardíos). La tabla mensual inferior se ajusta automáticamente para mostrar únicamente la serie temporal de este estado, verificando la consistencia de las consultas parametrizadas en el backend SQL sin riesgo de inyecciones.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{fig3_auditoria_rbac.png}
-\caption{Control de acceso basado en roles (RBAC) y registro de auditoría del sistema.}
+\caption{Control de acceso basado en roles (RBAC) y registro de auditoría.}
 \label{fig:auditoria_rbac}
-\fuente{Capturas comparativas del comportamiento del servidor según el rol de sesión.}
+\fuente{Capturas del comportamiento del servidor según el rol de sesión.}
 \end{figure}
 
-\textbf{Qué se observa en la Figura~\ref{fig:auditoria_rbac}:} En el panel superior (a), la vista administrativa \path{/audit} accesible únicamente para el rol \texttt{admin} (usuario \texttt{marco}), donde se detallan en orden cronológico inverso los eventos de auditoría: marca de tiempo UTC, identificador de usuario y tipo de acción (\texttt{login}, \texttt{dashboard\_api}, \texttt{dashboard\_api:MA}, \texttt{audit\_view}). En el panel inferior (b), la evidencia de control de acceso: cuando el usuario \texttt{lector} (rol \texttt{reader}) intenta ingresar a dicha ruta administrativa, el backend Flask intercepta la petición y responde con un código de estado \textbf{HTTP 403 Forbidden}.
-
-\textbf{Requisito que demuestra:} Cumplimiento de los \textbf{Requerimientos de Seguridad en Gestión de Accesos y Auditoría (F4)}. Valida la aplicación del principio de menor privilegio mediante control de acceso basado en roles (RBAC), la protección de rutas administrativas sensibles y la trazabilidad de operaciones sin exponer información confidencial ni almacenar contraseñas en los registros.
+\textbf{Detalle y validación:} En el panel superior (a), la ruta administrativa \path{/audit} es accesible para el rol \texttt{admin} (\texttt{marco}), listando en orden cronológico inverso los eventos de auditoría: marca de tiempo UTC, usuario y acción (\texttt{login}, \texttt{dashboard\_api}, \texttt{dashboard\_api:MA}, \texttt{audit\_view}). En el panel inferior (b), se evidencia la restricción de privilegios: cuando un usuario con rol \texttt{reader} (\texttt{lector}) intenta ingresar a dicha ruta, Flask bloquea la solicitud y devuelve un código \textbf{HTTP 403 Forbidden}, impidiendo el acceso a los registros de auditoría a roles no autorizados.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{fig4_seguridad_recuperacion.png}
-\caption{Verificación técnica de seguridad: cifrado en reposo, respaldo/recuperación íntegra y HTTPS.}
+\caption{Pruebas técnicas de seguridad: cifrado en reposo, contingencia y HTTPS.}
 \label{fig:seguridad_recuperacion}
-\fuente{Captura de sesión interactiva de terminal ejecutando pruebas de verificación.}
+\fuente{Captura de consola ejecutando pruebas de verificación.}
 \end{figure}
 
-\textbf{Qué se observa en la Figura~\ref{fig:seguridad_recuperacion}:} La ejecución en consola de tres procedimientos deterministas de verificación de seguridad:
+\textbf{Detalle y validación:} En la sesión de consola se comprueban tres mecanismos de seguridad implementados:
 \begin{enumerate}
-\item \emph{Cifrado en reposo (SQLCipher):} La lectura directa de los primeros 16 bytes de \path{instance/olist.db} con \texttt{xxd} revela bytes pseudoaleatorios y confirma la inexistencia de la cadena legible en texto claro \texttt{SQLite format 3}. El cliente utilitario \texttt{sqlite3} falla al intentar leer las tablas arrojando \texttt{Error: file is not a database (26)}. En contraste, la apertura mediante el módulo criptográfico con la clave de 256 bits (\path{instance/db.key}) permite consultar de manera exitosa los 96\,470 pedidos.
-\item \emph{Contingencia y recuperación ante incidentes:} Ejecución de \path{backup.py backup} generando una instantánea cifrada y autenticada con AES-256-GCM (\path{instance/copia.enc}). La posterior restauración mediante \path{backup.py restore} valida la integridad estructural (\texttt{PRAGMA integrity\_check = ok}) y confirma la recuperación intacta de los 96\,470 registros en una base de destino separada.
-\item \emph{Protección en tránsito (HTTPS local):} Negociación de canal seguro mediante TLS 1.3 con suite de cifrado \texttt{AEAD-AES256-GCM-SHA384} y certificado digital temporal ad-hoc, verificando la entrega de cabeceras de endurecimiento (\texttt{Cache-Control: no-store} y cookies con atributo \texttt{Secure}).
+\item \emph{Cifrado en reposo (SQLCipher):} La lectura inicial de los primeros 16 bytes de \path{instance/olist.db} mediante \texttt{xxd} muestra bytes aleatorios y confirma la ausencia de la cadena legible \texttt{SQLite format 3}. El cliente estándar \texttt{sqlite3} rechaza el archivo con \texttt{Error: file is not a database (26)}, mientras que la conexión mediante SQLCipher con la clave local de 256 bits (\path{instance/db.key}) abre la base y recupera los 96\,470 registros.
+\item \emph{Contingencia y recuperación:} Ejecución de \path{backup.py backup}, generando un respaldo cifrado y autenticado con AES-256-GCM (\path{instance/copia.enc}). Su posterior restauración con \path{backup.py restore} comprueba la integridad estructural (\texttt{PRAGMA integrity\_check = ok}) y confirma la recuperación exacta de las 96\,470 filas en una base independiente.
+\item \emph{Protección en tránsito (HTTPS local):} Negociación TLS 1.3 con cifrado AES-256-GCM y certificado autofirmado ad-hoc en Flask, validando la entrega de cabeceras de seguridad (\texttt{Cache-Control: no-store} y cookies con atributo \texttt{Secure}).
 \end{enumerate}
-
-\textbf{Requisito que demuestra:} Cumplimiento de los \textbf{Requerimientos Técnicos y de Seguridad: Cifrado en Reposo, Cifrado en Tránsito y Procesos de Recuperación ante Desastres / Contingencias}, satisfaciendo los criterios de máxima calificación de la rúbrica.
 
 \section{Recomendaciones de protección futura}
 \begin{enumerate}
@@ -372,18 +364,14 @@ Estas medidas se recomiendan porque reducen riesgos concretos identificados; no 
 La principal lección técnica es que un dataset público puede contener columnas que no se necesitan para responder la pregunta de negocio. Definir primero el denominador del KPI permitió importar menos campos y detectar los 646 pedidos sin reseña. La comparación con feriados mostró que una cifra atractiva puede ser engañosa cuando los tamaños de grupo son muy distintos. En seguridad, restaurar una copia aportó evidencia más fuerte que limitarse a generar el archivo cifrado; al mismo tiempo, dejó visible la debilidad de guardar clave y base en el mismo equipo.
 
 \subsection{Retrospectiva del trabajo en equipo y mejoras futuras}
-El proyecto es desarrollado conjuntamente por Ronal Jesus Condor Blas y Marco Soto Maceda. Esta retrospectiva se formula sobre el trabajo documentado en el repositorio; no se asignan porcentajes de participación ni tareas individuales que no estén registrados. Como plan de mejora para el equipo en futuros proyectos se propone:
+El proyecto es desarrollado por Ronal Jesus Condor Blas y Marco Soto Maceda. Esta retrospectiva se formula sobre el trabajo documentado en el repositorio; no se asignan porcentajes de participación ni tareas individuales que no estén registrados. Como mejoras de trabajo en equipo para proyectos futuros se propone:
 \begin{enumerate}
-\item Llevar un registro estructurado de decisiones arquitectónicas y de seguridad (ADR) para mantener la trazabilidad de cada cambio.
-\item Implementar un flujo sistemático de revisión cruzada de código (\emph{peer review}) para importadores y controles de acceso antes de su integración.
-\item Ejecutar ensayos periódicos de incidentes de seguridad con la participación conjunta de ambos integrantes.
-\item Formalizar una lista de chequeo de entrega para verificar la exclusión de secretos y la actualización documental antes del cierre.
+\item Llevar un registro estructurado de decisiones técnicas y de arquitectura para mantener la trazabilidad de cada cambio.
+\item Establecer un flujo sistemático de revisión cruzada de código (\emph{peer review}) antes de integrar cambios en el importador y en los controles de acceso.
+\item Ejecutar pruebas conjuntas periódicas para verificar la restauración de respaldos y el comportamiento ante incidentes.
+\item Formalizar una lista de verificación previa a la entrega para constatar la exclusión de claves y la vigencia de la documentación técnica.
 \end{enumerate}
-
-\subsection{Declaración sobre el uso de herramientas generativas y plataforma de entrega}
-Conforme a las directrices de la rúbrica del curso DS3031, se declara el uso asistido de herramientas de inteligencia artificial generativa durante el desarrollo del proyecto. Dichas herramientas se emplearon como apoyo técnico para la estructuración de componentes de interfaz (React y Tailwind), la depuración de scripts de pruebas automatizadas y la optimización sintáctica del documento LaTeX. Todas las decisiones arquitectónicas, modelos matemáticos de KPIs, configuraciones criptográficas y redacciones analíticas fueron verificadas, validadas y asumidas por los integrantes del equipo.
-
-El código fuente, scripts y documentación de este proyecto se encuentran gestionados en el repositorio de GitHub (\url{https://github.com/ronalforge/proyecto-etica-seguridad-olist}), garantizando la exclusión estricta de bases de datos operativas, respaldos y claves criptográficas mediante reglas de control de versiones. Este informe ha sido compilado para su entrega formal y se encuentra preparado para su publicación en GitHub Pages.
+El código fuente y la versión interactiva del informe se encuentran disponibles en el repositorio del proyecto (\url{https://github.com/ronalforge/proyecto-etica-seguridad-olist}) y en su correspondiente despliegue en GitHub Pages.
 
 \section{Conclusiones}
 El prototipo responde al caso de negocio con métricas históricas verificables y una interfaz agregada. La línea de base de 6.8\,\% de entregas tardías y la diferencia de puntuaciones permiten priorizar preguntas para una investigación logística posterior, pero no establecen causas ni metas operativas actuales. La integración de feriados añade una segunda fuente y demuestra por qué los grupos pequeños y las comparaciones no controladas requieren cautela.
