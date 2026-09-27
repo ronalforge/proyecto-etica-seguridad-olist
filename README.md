@@ -12,7 +12,7 @@ Proyecto de **Ronal Jesus Condor Blas y Marco Soto Maceda**. Es una demostració
 
 ## Cómo probarlo en Windows (Marco)
 
-Necesitas **Python 3.11**, **Node.js 22** y Git. Abre PowerShell en una carpeta de trabajo y clona el repositorio privado una vez que aceptes la invitación:
+Necesitas **Python 3.11**, **Node.js 22** y Git. Abre PowerShell en una carpeta de trabajo y clona el repositorio público:
 
 ```powershell
 git clone https://github.com/ronalforge/proyecto-etica-seguridad-olist.git
