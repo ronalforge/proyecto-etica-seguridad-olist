@@ -65,8 +65,3 @@ La clave de SQLCipher está en el mismo equipo que la base y el ZIP original no 
 
 Si ya tenías una base SQLite sin cifrar, detén el servidor y ejecuta `py migrate_db.py` una sola vez. Primero se crea `instance/pre-sqlcipher.enc`, un respaldo cifrado de la versión anterior. La migración conserva usuarios y auditoría.
 
-## Informe y trabajo en equipo
-
-El informe completo está en [informe/Informe_Olist.pdf](informe/Informe_Olist.pdf). Para editarlo en Overleaf, sube `Informe_Olist.tex` y `utec-logo.png` desde la carpeta `informe/`. Compartan el proyecto de Overleaf con permiso de edición; cuando ambos aprueben la versión final, descarguen el PDF y actualicen este repositorio. La publicación del informe para el profesor en GitHub Pages se hará **después** de esa revisión.
-
-Para colaborar en el código, Marco puede crear una rama, hacer sus cambios y abrir un *pull request* en el repositorio privado. Antes de subir cambios, revisen `git status` y comprueben que no aparezcan archivos de `data/` o `instance/`.
