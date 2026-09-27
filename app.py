@@ -178,6 +178,7 @@ if __name__ == '__main__':
     parser.add_argument('command', choices=['run', 'run-local-http', 'create-user'])
     parser.add_argument('--username')
     parser.add_argument('--role', default='reader')
+    parser.add_argument('--port', type=int, default=None)
     args = parser.parse_args()
     if args.command == 'create-user':
         import getpass
@@ -186,6 +187,6 @@ if __name__ == '__main__':
     elif args.command == 'run-local-http':
         # Solo para ver el prototipo en navegadores que bloquean certificados autofirmados.
         app.config['SESSION_COOKIE_SECURE'] = False
-        app.run(host='127.0.0.1', port=5001, debug=False)
+        app.run(host='127.0.0.1', port=args.port or 5001, debug=False)
     else:
-        app.run(host='127.0.0.1', port=5000, debug=False, ssl_context='adhoc')
+        app.run(host='127.0.0.1', port=args.port or 5000, debug=False, ssl_context='adhoc')
